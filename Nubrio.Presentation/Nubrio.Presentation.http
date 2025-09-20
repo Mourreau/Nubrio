@@ -1,0 +1,6 @@
+@Nubrio.Presentation_HostAddress = http://localhost:5189
+
+GET {{Nubrio.Presentation_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
