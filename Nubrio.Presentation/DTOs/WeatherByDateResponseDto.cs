@@ -1,4 +1,4 @@
-namespace Nubrio.Application.DTOs;
+namespace Nubrio.Presentation.DTOs;
 
 public class WeatherByDateResponseDto
 {
