@@ -16,7 +16,9 @@ public record Coordinates
         get => _latitude;
         init
         {
-            if (!ValidateRange(-90, 90, value)) // Широта должна быть в диапазоне от -90 до 90 градусов
+            if (!ValidateRange(-90, 90, value) // Широта должна быть в диапазоне от -90 до 90 градусов
+                || double.IsNaN(value) 
+                || double.IsInfinity(value)) 
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(Latitude), 
@@ -33,7 +35,9 @@ public record Coordinates
         get => _longitude;
         init
         {
-            if (!ValidateRange(-180, 180, value)) // Долгота должна быть в диапазоне от -180 до 180 градусов
+            if (!ValidateRange(-180, 180, value) // Долгота должна быть в диапазоне от -180 до 180 градусов
+                || double.IsNaN(value) 
+                || double.IsInfinity(value)) 
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(Longitude), 
