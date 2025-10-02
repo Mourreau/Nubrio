@@ -1,5 +1,7 @@
 using Nubrio.Application.Interfaces;
 using Nubrio.Application.Services;
+using Nubrio.Infrastructure.MockProvider;
+using Nubrio.Infrastructure.OpenMeteo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +10,22 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
+builder.Services.AddScoped<IWeatherProvider, OpenMeteoWeatherProvider>();
+
+builder.Configuration.AddJsonFile(
+    "Configuration/weathercode-mapping.json", 
+    optional: false, 
+    reloadOnChange: true);
+
+builder.Services.Configure<WeatherCodeMappings>(builder.Configuration.GetSection("WeatherCodeMappings"));
+builder.Services.AddSingleton<IWeatherCodeTranslator, WeatherCodeTranslator>();
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddScoped<IWeatherProvider, MockWeatherProvider>();
+}
+else{}
 
 var app = builder.Build();
 
