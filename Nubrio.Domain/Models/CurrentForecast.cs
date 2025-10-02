@@ -8,5 +8,5 @@ public class CurrentForecast
     public DateOnly Date { get; set; }
     public Location ForecastLocation { get; set; }
     public double Temperature { get; set; }
-    public WeatherCondition Condition { get; set; }
+    public WeatherConditions Conditions { get; set; }
 }
