@@ -1,6 +1,6 @@
-namespace Nubrio.Presentation.DTOs;
+namespace Nubrio.Presentation.DTOs.Response;
 
-public class WeatherByDateResponseDto
+public class CurrentWeatherResponseDto
 {
     public string City { get; set; }
     public DateOnly Date { get; set; }
