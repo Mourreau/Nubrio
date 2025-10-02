@@ -1,0 +1,17 @@
+{
+  "WeatherCodeMappings": {
+    "Clear":  [0, 1],
+    "PartlyCloudy": [2],
+    "Cloudy":  [3],
+    "Fog": [45, 48],
+    "Drizzle": [51, 53, 55, 56, 57],
+    "LightRain": [61, 66, 80],
+    "Rain":  [63, 67, 81],
+    "HeavyRain": [65, 82],
+    "LightSnow":  [71],
+    "Snow": [73, 77, 85],
+    "HeavySnow":  [75, 86],
+    "Hailstorm": [96, 99],
+    "Thunderstorm": [95]
+  }
+}
