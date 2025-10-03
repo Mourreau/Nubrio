@@ -14,4 +14,8 @@
       <Folder Include="Services\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Nubrio.Domain\Nubrio.Domain.csproj" />
+    </ItemGroup>
+
 </Project>
