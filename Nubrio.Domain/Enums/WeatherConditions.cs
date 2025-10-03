@@ -7,7 +7,7 @@ public enum WeatherConditions
     PartlyCloudy,
     Cloudy,
     Fog,
-    Drizzle, // Изморозь
+    Drizzle, // Морось
     LightRain,
     Rain,
     HeavyRain,
