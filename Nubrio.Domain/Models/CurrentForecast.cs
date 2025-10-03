@@ -4,12 +4,12 @@ using Nubrio.Domain.Enums;
 namespace Nubrio.Domain.Models;
 
 public class CurrentForecast(
-    DateOnly date,
+    DateTimeOffset observedAt,
     Guid locationId,
     double temperature,
     WeatherConditions conditions)
 {
-    public DateOnly Date { get; } = date;
+    public DateTimeOffset ObservedAt { get; } = observedAt;
     public Guid LocationId { get; } = locationId;
     public double Temperature { get; } = temperature;
     public WeatherConditions Conditions { get; } = conditions;
