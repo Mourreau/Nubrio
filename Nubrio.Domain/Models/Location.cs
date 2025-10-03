@@ -1,9 +1,9 @@
 namespace Nubrio.Domain.Models;
 
-public class Location
+public class Location(Guid locationId, string name, Coordinates coordinates, string timeZoneIana)
 {
-    public Guid LocationId { get; set; }
-    public string Name { get; set; }
-    public Coordinates Coordinates { get; set; }
-    public string TimeZone { get; set; }
+    public Guid LocationId { get; } = locationId;
+    public string Name { get; } = name;
+    public Coordinates Coordinates { get; } = coordinates;
+    public string TimeZoneIana { get; } = timeZoneIana;
 }
