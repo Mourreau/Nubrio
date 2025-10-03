@@ -22,19 +22,12 @@ public class WeatherForecastService : IWeatherForecastService
 
         if (fetchResult.IsSuccess)
         {
-            var forecastModel = new CurrentForecast
-            {
-                Date = GetDateTimeFromString(currentForecast.Time),
-                Conditions = _codeTranslator.Translate(currentForecast.WeatherCode),
-                ForecastLocation = new Location
-                {
-                    LocationId = Guid.NewGuid(),
-                    Name = city,
-                    Coordinates = currentForecast.Coordinates,
-                    TimeZone = currentForecast.TimeZone
-                },
-                Temperature = currentForecast.Temperature2m
-            };
+            var forecastModel = new CurrentForecast(
+                DateTimeOffset.Now, 
+                Guid.Empty, 
+                currentForecast.Temperature2m,
+                _codeTranslator.Translate(currentForecast.WeatherCode));
+            
             
             return Result.Ok(forecastModel);
         }
