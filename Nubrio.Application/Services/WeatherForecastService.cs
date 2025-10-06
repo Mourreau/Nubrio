@@ -1,5 +1,6 @@
 using FluentResults;
 using Nubrio.Application.DTOs.CurrentForecast;
+using Nubrio.Application.DTOs.DailyForecast;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Models;
 
@@ -12,37 +13,42 @@ public class WeatherForecastService : IWeatherForecastService
     public WeatherForecastService(IWeatherProvider weatherProvider)
     {
         _weatherProvider = weatherProvider;
-        _codeTranslator = codeTranslator;
     }
 
-    public async Task<Result<CurrentForecast>> GetCurrentForecastAsync(string city)
+    public async Task<Result<CurrentForecastResponseDto>> GetCurrentForecastAsync(string city)
     {
-        var fetchResult = await _weatherProvider.TryGetCurrentForecast(city, out CurrentResponseDto currentForecast);
+        var fetchResult = await _weatherProvider.GetCurrentForecast(city);
 
         if (fetchResult.IsSuccess)
         {
-            var forecastModel = new CurrentForecast(
-                DateTimeOffset.Now, 
-                Guid.Empty, 
-                currentForecast.Temperature2m,
-                _codeTranslator.Translate(currentForecast.WeatherCode));
+            var result = new CurrentForecastResponseDto
+            {
+                City = city,
+                Date = fetchResult.Value.ObservedAt,
+                Condition = fetchResult.Value.Condition.ToString(),
+                Temperature = fetchResult.Value.Temperature,
+                IconUrl = "IconUrl",
+                Source = "Open Meteo",
+                FetchedAt = DateTimeOffset.Now,
+            };
             
-            
-            return Result.Ok(forecastModel);
+            return Result.Ok(result);
         }
 
         return Result.Fail("Current forecast could not be retrieved");
     }
 
-    public Task<Result<DailyForecast>> GetDailyForecastByDateAsync(Coordinates coordinates, DateOnly date)
+    public Task<Result<DailyForecastResponseDto>> GetDailyForecastByDateAsync(Coordinates coordinates, DateOnly date)
     {
         throw new NotImplementedException();
     }
 
-    public Task<Result<DailyForecast>> GetDailyForecastByStartEndDateAsync(Coordinates coordinates, DateOnly startDate, DateOnly endDate)
+    public Task<Result<DailyForecastResponseDto>> GetDailyForecastByStartEndDateAsync(
+        Coordinates coordinates, DateOnly startDate, DateOnly endDate)
     {
         throw new NotImplementedException();
     }
+
 
     private DateOnly GetDateTimeFromString(string dateString)
     {
