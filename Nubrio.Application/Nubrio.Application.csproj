@@ -18,8 +18,4 @@
       <ProjectReference Include="..\Nubrio.Domain\Nubrio.Domain.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Compile Remove="DTOs\CurrentForecast\CurrentForecastDto.cs" />
-    </ItemGroup>
-
 </Project>
