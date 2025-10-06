@@ -9,42 +9,45 @@ namespace Nubrio.Application.Services;
 public class WeatherForecastService : IWeatherForecastService
 {
     private readonly IWeatherProvider _weatherProvider;
+    private readonly IGeocodingService _geocodingService;
     
-    public WeatherForecastService(IWeatherProvider weatherProvider)
+    public WeatherForecastService(IWeatherProvider weatherProvider, IGeocodingService geocodingService)
     {
         _weatherProvider = weatherProvider;
+        _geocodingService = geocodingService;
     }
 
-    public async Task<Result<CurrentForecastResponseDto>> GetCurrentForecastAsync(string city)
+    public async Task<Result<CurrentForecastDto>> GetCurrentForecastAsync(string city,
+        CancellationToken cancellationToken)
     {
-        var fetchResult = await _weatherProvider.GetCurrentForecast(city);
+        var coordinates = _geocodingService.Resolve(city).Coordinates;
+        var fetchResult = await _weatherProvider.GetCurrentForecastAsync(coordinates, cancellationToken);
 
         if (fetchResult.IsSuccess)
         {
-            var result = new CurrentForecastResponseDto
+            var result = new CurrentForecastDto
             {
                 City = city,
                 Date = fetchResult.Value.ObservedAt,
                 Condition = fetchResult.Value.Condition.ToString(),
                 Temperature = fetchResult.Value.Temperature,
-                IconUrl = "IconUrl",
-                Source = "Open Meteo",
-                FetchedAt = DateTimeOffset.Now,
+                FetchedAt = DateTimeOffset.Now
             };
             
             return Result.Ok(result);
         }
 
-        return Result.Fail("Current forecast could not be retrieved");
+        return Result.Fail(fetchResult.Errors);
     }
 
-    public Task<Result<DailyForecastResponseDto>> GetDailyForecastByDateAsync(Coordinates coordinates, DateOnly date)
+    public Task<Result<DailyForecastDto>> GetDailyForecastByDateAsync(Coordinates coordinates, DateOnly date,
+        CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
 
-    public Task<Result<DailyForecastResponseDto>> GetDailyForecastByStartEndDateAsync(
-        Coordinates coordinates, DateOnly startDate, DateOnly endDate)
+    public Task<Result<DailyForecastDto>> GetDailyForecastByStartEndDateAsync(Coordinates coordinates,
+        DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

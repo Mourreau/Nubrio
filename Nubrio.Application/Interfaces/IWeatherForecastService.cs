@@ -7,12 +7,13 @@ namespace Nubrio.Application.Interfaces;
 
 public interface IWeatherForecastService
 {
-    Task<Result<CurrentForecastResponseDto>> GetCurrentForecastAsync(string city);
+    Task<Result<CurrentForecastDto>> GetCurrentForecastAsync(string city, CancellationToken cancellationToken);
     
-    Task<Result<DailyForecastResponseDto>> GetDailyForecastByDateAsync(Coordinates coordinates, DateOnly date);
+    Task<Result<DailyForecastDto>> GetDailyForecastByDateAsync(
+        Coordinates coordinates, DateOnly date, CancellationToken cancellationToken);
     
-    Task<Result<DailyForecastResponseDto>> GetDailyForecastByStartEndDateAsync(
-        Coordinates coordinates, DateOnly startDate,  DateOnly endDate);
+    Task<Result<DailyForecastDto>> GetDailyForecastByStartEndDateAsync(
+        Coordinates coordinates, DateOnly startDate,  DateOnly endDate, CancellationToken cancellationToken);
     
     
     
