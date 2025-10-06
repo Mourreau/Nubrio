@@ -20,8 +20,9 @@ public class WeatherForecastService : IWeatherForecastService
     public async Task<Result<CurrentForecastDto>> GetCurrentForecastAsync(string city,
         CancellationToken cancellationToken)
     {
-        var coordinates = _geocodingService.Resolve(city).Coordinates;
-        var fetchResult = await _weatherProvider.GetCurrentForecastAsync(coordinates, cancellationToken);
+        var location = await _geocodingService.ResolveAsync(city,  cancellationToken);
+        
+        var fetchResult = await _weatherProvider.GetCurrentForecastAsync(location.Value, cancellationToken);
 
         if (fetchResult.IsSuccess)
         {
@@ -52,15 +53,5 @@ public class WeatherForecastService : IWeatherForecastService
         throw new NotImplementedException();
     }
 
-
-    private DateOnly GetDateTimeFromString(string dateString)
-    {
-        string format = "yyyy-MM-dd'T'HH:mm";
-        
-        DateTime fullDateTime = DateTime.ParseExact(dateString, format, null);
-
-        DateOnly dateOnly = DateOnly.FromDateTime(fullDateTime);
-
-        return dateOnly;
-    }
+    
 }
