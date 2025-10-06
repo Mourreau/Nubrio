@@ -8,9 +8,8 @@ namespace Nubrio.Application.Services;
 public class WeatherForecastService : IWeatherForecastService
 {
     private readonly IWeatherProvider _weatherProvider;
-    private readonly IWeatherCodeTranslator _codeTranslator;
-
-    public WeatherForecastService(IWeatherProvider weatherProvider, IWeatherCodeTranslator codeTranslator)
+    
+    public WeatherForecastService(IWeatherProvider weatherProvider)
     {
         _weatherProvider = weatherProvider;
         _codeTranslator = codeTranslator;
