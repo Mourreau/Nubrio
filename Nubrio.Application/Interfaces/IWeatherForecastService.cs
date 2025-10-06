@@ -12,7 +12,7 @@ public interface IWeatherForecastService
     Task<Result<DailyForecastDto>> GetDailyForecastByDateAsync(
         Coordinates coordinates, DateOnly date, CancellationToken cancellationToken);
     
-    Task<Result<DailyForecastDto>> GetDailyForecastByStartEndDateAsync(
+    Task<Result<DailyForecastDto>> GetDailyForecastRangeAsync(
         Coordinates coordinates, DateOnly startDate,  DateOnly endDate, CancellationToken cancellationToken);
     
     

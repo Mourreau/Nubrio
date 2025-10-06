@@ -47,7 +47,7 @@ public class WeatherForecastService : IWeatherForecastService
         throw new NotImplementedException();
     }
 
-    public Task<Result<DailyForecastDto>> GetDailyForecastByStartEndDateAsync(Coordinates coordinates,
+    public Task<Result<DailyForecastDto>> GetDailyForecastRangeAsync(Coordinates coordinates,
         DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
