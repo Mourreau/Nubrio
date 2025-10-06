@@ -1,12 +1,22 @@
+using System.ComponentModel.DataAnnotations;
 using Nubrio.Domain.Enums;
 
 namespace Nubrio.Application.DTOs.DailyForecast;
 
-public class DailyForecastDto
+public record DailyForecastDto
 {
-    public string City { get; set; }
-    public List<DateOnly> Dates { get; set; }
-    public List<string> Conditions { get; set; }
-    public List<double> TemperaturesAvg { get; set; }
-    public DateTimeOffset FetchedAt{ get; set; }
+    [Required]
+    public string City { get; init; }
+    
+    [Required]
+    public IReadOnlyList<DateOnly> Dates { get; init; } = [];
+    
+    [Required]
+    public IReadOnlyList<string> Conditions { get; init; } = [];
+    
+    [Required]
+    public IReadOnlyList<double> TemperaturesAvg { get; init; } = [];
+    
+    [Required]
+    public DateTimeOffset FetchedAt{ get; init; }
 }
