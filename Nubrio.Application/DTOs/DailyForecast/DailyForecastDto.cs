@@ -1,6 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using Nubrio.Domain.Enums;
-
 namespace Nubrio.Application.DTOs.DailyForecast;
 
 public record DailyForecastDto

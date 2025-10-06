@@ -28,7 +28,7 @@ public class WeatherForecastService : IWeatherForecastService
     public async Task<Result<CurrentForecastDto>> GetCurrentForecastAsync(string city,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(city.Trim()))
+        if (string.IsNullOrWhiteSpace(city))
             return Result.Fail("City must not be empty or whitespace");
 
         var geocodingResult = await _geocodingService.ResolveAsync(city, cancellationToken);
