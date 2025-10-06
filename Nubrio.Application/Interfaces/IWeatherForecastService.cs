@@ -10,10 +10,10 @@ public interface IWeatherForecastService
     Task<Result<CurrentForecastDto>> GetCurrentForecastAsync(string city, CancellationToken cancellationToken);
     
     Task<Result<DailyForecastDto>> GetDailyForecastByDateAsync(
-        Coordinates coordinates, DateOnly date, CancellationToken cancellationToken);
+        string city, DateOnly date, CancellationToken cancellationToken);
     
     Task<Result<DailyForecastDto>> GetDailyForecastRangeAsync(
-        Coordinates coordinates, DateOnly startDate,  DateOnly endDate, CancellationToken cancellationToken);
+        string city, DateOnly startDate,  DateOnly endDate, CancellationToken cancellationToken);
     
     
     
