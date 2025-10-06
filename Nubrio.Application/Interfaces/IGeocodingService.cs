@@ -5,5 +5,5 @@ namespace Nubrio.Application.Interfaces;
 
 public interface IGeocodingService
 {
-    Task<Result<Location>> ResolveAsync(string city, CancellationToken ct);
+    Task<Result<Location>> ResolveAsync(string city, CancellationToken cancellationToken);
 }

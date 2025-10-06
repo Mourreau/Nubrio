@@ -5,18 +5,13 @@ namespace Nubrio.Application.DTOs.DailyForecast;
 
 public record DailyForecastDto
 {
-    [Required]
-    public string City { get; init; }
+    public required string City { get; init; }
     
-    [Required]
-    public IReadOnlyList<DateOnly> Dates { get; init; } = [];
+    public required IReadOnlyList<DateOnly> Dates { get; init; } = [];
     
-    [Required]
-    public IReadOnlyList<string> Conditions { get; init; } = [];
+    public required IReadOnlyList<string> Conditions { get; init; } = [];
     
-    [Required]
-    public IReadOnlyList<double> TemperaturesAvg { get; init; } = [];
+    public required IReadOnlyList<double> TemperaturesAvg { get; init; } = [];
     
-    [Required]
-    public DateTimeOffset FetchedAt{ get; init; }
+    public required DateTimeOffset FetchedAt{ get; init; }
 }

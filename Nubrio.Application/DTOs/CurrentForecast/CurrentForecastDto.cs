@@ -1,22 +1,16 @@
-using System.ComponentModel.DataAnnotations;
-using Nubrio.Domain.Models;
 
 namespace Nubrio.Application.DTOs.CurrentForecast;
 
 public record CurrentForecastDto
 {
-    [Required]
-    public string City { get; init; }
+    public required string City { get; init; }
     
-    [Required]
-    public DateTimeOffset Date { get; init; }
+    public required DateTimeOffset Date { get; init; }
     
-    [Required]
-    public string Condition { get; init; }
+    public required string Condition { get; init; }
     
-    [Required]
-    public double Temperature { get; init; }
+    public required double Temperature { get; init; }
     
-    [Required]
-    public DateTimeOffset FetchedAt{ get; init; }
+    public required DateTimeOffset FetchedAt{ get; init; }
+    
 }
