@@ -13,6 +13,13 @@ public class MockWeatherProvider : IWeatherProvider
 {
     public Task<Result<bool>> TryGetDailyForecastByDate(Coordinates coordinates, DateOnly startDate, DateOnly endDate,
         out DailyResponseDto dailyForecast)
+    private readonly IWeatherCodeTranslator _weatherCodeTranslator;
+
+    public MockWeatherProvider(IWeatherCodeTranslator weatherCodeTranslator)
+    {
+        _weatherCodeTranslator = weatherCodeTranslator;
+    }
+
     {
         dailyForecast = new DailyResponseDto();
         return Task.FromResult(Result.Fail<bool>("Weather not found"));
@@ -55,5 +62,17 @@ public class MockWeatherProvider : IWeatherProvider
                 return Task.FromResult(Result.Ok(true));
             }
         }
+    }
+    
+    private DateTimeOffset GetDateTimeOffsetFromString(string dateString, string timeZoneId)
+    {
+        DateTime dateTime = DateTime.Parse(dateString);
+
+        TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+        
+        TimeSpan offset = timeZoneInfo.GetUtcOffset(dateTime);
+
+        return new DateTimeOffset(dateTime,  offset);
+
     }
 }
