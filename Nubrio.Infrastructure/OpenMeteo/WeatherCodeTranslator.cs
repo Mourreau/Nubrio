@@ -33,8 +33,6 @@ public class WeatherCodeTranslator : IWeatherCodeTranslator
     
     public WeatherConditions Translate(int wmoCode)
     {
-        return _weatherConditions.TryGetValue(wmoCode, out var condition) 
-            ? condition 
-            : WeatherConditions.Unknown;
+        return _weatherConditions.GetValueOrDefault(wmoCode, WeatherConditions.Unknown);
     }
 }
