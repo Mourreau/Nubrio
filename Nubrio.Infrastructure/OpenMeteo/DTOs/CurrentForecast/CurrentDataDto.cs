@@ -4,6 +4,9 @@ namespace Nubrio.Infrastructure.OpenMeteo.DTOs.CurrentForecast;
 
 public class CurrentDataDto
 {
+    /// <summary>
+    /// Response date and time in format: "yyyy-MM-dd'T'HH:mm".
+    /// </summary>
     [JsonPropertyName("time")]
     public string Time { get; set; }
     
