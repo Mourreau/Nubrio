@@ -11,8 +11,6 @@ namespace Nubrio.Infrastructure.MockProvider;
 
 public class MockWeatherProvider : IWeatherProvider
 {
-    public Task<Result<bool>> TryGetDailyForecastByDate(Coordinates coordinates, DateOnly startDate, DateOnly endDate,
-        out DailyResponseDto dailyForecast)
     private readonly IWeatherCodeTranslator _weatherCodeTranslator;
 
     public MockWeatherProvider(IWeatherCodeTranslator weatherCodeTranslator)
@@ -20,12 +18,13 @@ public class MockWeatherProvider : IWeatherProvider
         _weatherCodeTranslator = weatherCodeTranslator;
     }
 
+    public Task<Result<DailyForecast>> GetDailyForecastRangeAsync(
+        Location location, DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken)
     {
-        dailyForecast = new DailyResponseDto();
-        return Task.FromResult(Result.Fail<bool>("Weather not found"));
+        return Task.FromResult(Result.Fail<DailyForecast>("Weather not found"));
     }
 
-    public Task<Result<bool>> TryGetCurrentForecast(string city, out CurrentResponseDto currentForecast)
+    public Task<Result<CurrentForecast>> GetCurrentForecastAsync(Location location, CancellationToken cancellationToken)
     {
         var assembly = Assembly.GetExecutingAssembly();
         
@@ -45,21 +44,18 @@ public class MockWeatherProvider : IWeatherProvider
 
                 if (responseDto == null)
                 {
-                    currentForecast = new CurrentResponseDto();
-                    return Task.FromResult(Result.Fail<bool>("Weather not found"));
+                    return Task.FromResult(Result.Fail<CurrentForecast>("Weather not found"));
                 }
 
-                currentForecast = new CurrentResponseDto
-                {
-                    Time = responseDto.Current.Time,
-                    Interval = responseDto.Current.Interval,
-                    Temperature2m = responseDto.Current.Temperature2m,
-                    WeatherCode = responseDto.Current.WeatherCode,
-                    Coordinates = new Coordinates(responseDto.Latitude, responseDto.Longitude),
-                    TimeZone = responseDto.Timezone
-                };
+                var result = new CurrentForecast
+                (
+                    GetDateTimeOffsetFromString(responseDto.Current.Time, responseDto.Timezone),
+                    location.LocationId,
+                    responseDto.Current.Temperature2m,
+                    _weatherCodeTranslator.Translate(responseDto.Current.WeatherCode)
+                );
 
-                return Task.FromResult(Result.Ok(true));
+                return Task.FromResult(Result.Ok(result));
             }
         }
     }
