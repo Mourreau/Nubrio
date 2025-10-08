@@ -2,13 +2,13 @@ using Microsoft.Extensions.Options;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Enums;
 
-namespace Nubrio.Infrastructure.OpenMeteo;
+namespace Nubrio.Infrastructure.OpenMeteo.WmoCodes;
 
-public class WeatherCodeTranslator : IWeatherCodeTranslator
+public class OpenMeteoWeatherCodeTranslator : IWeatherCodeTranslator
 {
     private readonly Dictionary<int, WeatherConditions> _weatherConditions = new();
 
-    public WeatherCodeTranslator(IOptions<WeatherCodeMappings> mappings)
+    public OpenMeteoWeatherCodeTranslator(IOptions<WeatherCodeMappings> mappings)
     {
         var config = mappings.Value;
         
