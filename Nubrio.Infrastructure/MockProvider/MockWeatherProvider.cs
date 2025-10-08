@@ -1,8 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
 using FluentResults;
-using Nubrio.Application.DTOs.CurrentForecast;
-using Nubrio.Application.DTOs.DailyForecast;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Models;
 using Nubrio.Infrastructure.OpenMeteo.DTOs.CurrentForecast;
@@ -60,15 +58,4 @@ public class MockWeatherProvider : IWeatherProvider
         }
     }
     
-    private DateTimeOffset GetDateTimeOffsetFromString(string dateString, string timeZoneId)
-    {
-        DateTime dateTime = DateTime.Parse(dateString);
-
-        TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-        
-        TimeSpan offset = timeZoneInfo.GetUtcOffset(dateTime);
-
-        return new DateTimeOffset(dateTime,  offset);
-
-    }
 }
