@@ -8,6 +8,12 @@
 
     <ItemGroup>
       <PackageReference Include="FluentResults" Version="4.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.9" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Nubrio.Application\Nubrio.Application.csproj" />
+      <ProjectReference Include="..\Nubrio.Domain\Nubrio.Domain.csproj" />
     </ItemGroup>
 
 </Project>
