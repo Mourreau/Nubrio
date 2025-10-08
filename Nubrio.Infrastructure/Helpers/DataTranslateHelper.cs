@@ -5,25 +5,28 @@ namespace Nubrio.Infrastructure.Helpers;
 
 public static class DataTranslateHelper
 {
-    public static Result<DateTimeOffset> GetDateTimeOffsetFromString(string dateString, string timeZoneId)
+    public static Result<DateTimeOffset> GetUtcDateTimeOffsetFromString(string dateString, string timeZoneId)
     {
         string dateFormat = "yyyy-MM-dd'T'HH:mm";
 
+        // Переводим строку Time из результата внешнего API в DateTime
         if (!DateTime.TryParseExact(
                 dateString,
                 dateFormat,
                 CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                DateTimeStyles.None,
                 out DateTime dateTimeResult))
         {
             return Result.Fail($"Could not parse '{dateString}' to '{dateFormat}'.");
         }
         
+        // Получаем TimeZoneInfo из строки TimeZone внешнего API
         TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
         
-        TimeSpan offset = timeZoneInfo.GetUtcOffset(dateTimeResult);
+        // 
+        DateTime utcTime = TimeZoneInfo.ConvertTimeToUtc(dateTimeResult, timeZoneInfo);
 
-        return Result.Ok(new DateTimeOffset(dateTimeResult,  offset));
+        return Result.Ok(new DateTimeOffset(utcTime,  TimeSpan.Zero));
 
     }
 }
