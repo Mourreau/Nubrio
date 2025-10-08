@@ -3,6 +3,7 @@ using System.Text.Json;
 using FluentResults;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Models;
+using Nubrio.Infrastructure.Helpers;
 using Nubrio.Infrastructure.OpenMeteo.DTOs.CurrentForecast;
 
 namespace Nubrio.Infrastructure.MockProvider;
@@ -45,9 +46,16 @@ public class MockWeatherProvider : IWeatherProvider
                     return Task.FromResult(Result.Fail<CurrentForecast>("Weather not found"));
                 }
 
+                var offsetFromString = DataTranslateHelper.GetDateTimeOffsetFromString(
+                    responseDto.Current.Time, 
+                    responseDto.Timezone);
+
+                if (offsetFromString.IsFailed)
+                    return Task.FromResult(Result.Fail<CurrentForecast>(offsetFromString.Errors));
+                
                 var result = new CurrentForecast
                 (
-                    GetDateTimeOffsetFromString(responseDto.Current.Time, responseDto.Timezone),
+                    offsetFromString.Value,
                     location.LocationId,
                     responseDto.Current.Temperature2m,
                     _weatherCodeTranslator.Translate(responseDto.Current.WeatherCode)
