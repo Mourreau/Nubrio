@@ -2,17 +2,17 @@ namespace Nubrio.Infrastructure.OpenMeteo.WmoCodes;
 
 public class WeatherCodeMappings
 {
-    public int[] Clear { get; set; }
-    public int[] PartlyCloudy { get; set; }
-    public int[] Cloudy { get; set; }
-    public int[] Fog { get; set; }
-    public int[] Drizzle { get; set; }
-    public int[] LightRain { get; set; }
-    public int[] Rain { get; set; }
-    public int[] HeavyRain { get; set; }
-    public int[] LightSnow { get; set; }
-    public int[] Snow { get; set; }
-    public int[] HeavySnow { get; set; }
-    public int[] Hailstorm { get; set; }
-    public int[] Thunderstorm { get; set; }
+    public int[] Clear { get; init; }
+    public int[] PartlyCloudy { get; init; }
+    public int[] Cloudy { get; init; }
+    public int[] Fog { get; init; }
+    public int[] Drizzle { get; init; }
+    public int[] LightRain { get; init; }
+    public int[] Rain { get; init; }
+    public int[] HeavyRain { get; init; }
+    public int[] LightSnow { get; init; }
+    public int[] Snow { get; init; }
+    public int[] HeavySnow { get; init; }
+    public int[] Hailstorm { get; init; }
+    public int[] Thunderstorm { get; init; }
 }
