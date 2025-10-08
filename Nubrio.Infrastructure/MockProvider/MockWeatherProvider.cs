@@ -12,6 +12,9 @@ public class MockWeatherProvider : IWeatherProvider
 {
     private readonly IWeatherCodeTranslator _weatherCodeTranslator;
 
+    private const string _resourceName =
+        "Nubrio.Infrastructure.MockProvider.mock_weather_api_current_response.json";
+
     public MockWeatherProvider(IWeatherCodeTranslator weatherCodeTranslator)
     {
         _weatherCodeTranslator = weatherCodeTranslator;
@@ -27,9 +30,8 @@ public class MockWeatherProvider : IWeatherProvider
     {
         var assembly = Assembly.GetExecutingAssembly();
         
-        string resourceName = "Nubrio.Infrastructure.MockProvider.mock_weather_api_current_response.json";
-
         using (Stream? stream = assembly.GetManifestResourceStream(resourceName))
+        
         {
             if (stream == null)
                 return Task.FromResult(Result.Fail<CurrentForecast>($"Embedded resource '{resourceName}' not found"));
