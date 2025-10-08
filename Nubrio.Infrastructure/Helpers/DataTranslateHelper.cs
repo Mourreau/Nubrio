@@ -21,9 +21,10 @@ public static class DataTranslateHelper
         }
         
         // Получаем TimeZoneInfo из строки TimeZone внешнего API
-        TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+        if(!TimeZoneInfo.TryFindSystemTimeZoneById(timeZoneId, out var timeZoneInfo))
+            return Result.Fail($"Could not find time zone '{timeZoneId}'.");
         
-        // 
+        // Переводим полученное время в UTC
         DateTime utcTime = TimeZoneInfo.ConvertTimeToUtc(dateTimeResult, timeZoneInfo);
 
         return Result.Ok(new DateTimeOffset(utcTime,  TimeSpan.Zero));
