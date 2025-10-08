@@ -32,8 +32,8 @@ public class MockWeatherProvider : IWeatherProvider
         using (Stream? stream = assembly.GetManifestResourceStream(resourceName))
         {
             if (stream == null)
-                throw new FileNotFoundException($"Embedded resource: {resourceName} not found");
-
+                return Task.FromResult(Result.Fail<CurrentForecast>($"Embedded resource '{resourceName}' not found"));
+            
             using (var reader = new StreamReader(stream))
             {
                 var jsonContent = reader.ReadToEnd();
@@ -46,7 +46,7 @@ public class MockWeatherProvider : IWeatherProvider
                     return Task.FromResult(Result.Fail<CurrentForecast>("Weather not found"));
                 }
 
-                var offsetFromString = DataTranslateHelper.GetDateTimeOffsetFromString(
+                var offsetFromString = DataTranslateHelper.GetUtcDateTimeOffsetFromString(
                     responseDto.Current.Time, 
                     responseDto.Timezone);
 
