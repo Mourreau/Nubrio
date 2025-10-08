@@ -1,4 +1,4 @@
-namespace Nubrio.Infrastructure.OpenMeteo;
+namespace Nubrio.Infrastructure.OpenMeteo.WmoCodes;
 
 public class WeatherCodeMappings
 {
