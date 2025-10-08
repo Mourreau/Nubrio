@@ -5,14 +5,14 @@ namespace Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast;
 public class DailyUnitsDto
 {
     [JsonPropertyName("time")]
-    public string Time { get; set; }
+    public string Time { get; init; }
     
     [JsonPropertyName("weather_code")]
-    public string WeatherCode {get; set;}
+    public string WeatherCode {get; init;}
     
     [JsonPropertyName("temperature_2m_max")]
-    public string Temperature2mMax {get; set;}
+    public string Temperature2mMax {get; init;}
     
     [JsonPropertyName("temperature_2m_min")]
-    public string Temperature2mMin {get; set;}
+    public string Temperature2mMin {get; init;}
 }
