@@ -26,26 +26,27 @@ public class MockWeatherProvider : IWeatherProvider
         return Task.FromResult(Result.Fail<DailyForecast>("Weather not found"));
     }
 
-    public Task<Result<CurrentForecast>> GetCurrentForecastAsync(Location location, CancellationToken cancellationToken)
+    public async Task<Result<CurrentForecast>> GetCurrentForecastAsync(Location location, CancellationToken cancellationToken)
     {
         var assembly = Assembly.GetExecutingAssembly();
         
-        using (Stream? stream = assembly.GetManifestResourceStream(resourceName))
         
+        await using (Stream? stream = assembly.GetManifestResourceStream(_resourceName))
         {
             if (stream == null)
-                return Task.FromResult(Result.Fail<CurrentForecast>($"Embedded resource '{resourceName}' not found"));
+                return Result.Fail<CurrentForecast>($"Embedded resource '{_resourceName}' not found");
             
             using (var reader = new StreamReader(stream))
             {
-                var jsonContent = reader.ReadToEnd();
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                
+                var jsonContent = await reader.ReadToEndAsync(cancellationToken);
+                var options = new JsonSerializerOptions();
+                options.PropertyNameCaseInsensitive = true;
+
                 var responseDto = JsonSerializer.Deserialize<OpenMeteoCurrentResponseDto>(jsonContent, options);
 
                 if (responseDto == null)
                 {
-                    return Task.FromResult(Result.Fail<CurrentForecast>("Weather not found"));
+                    return Result.Fail<CurrentForecast>("Weather not found");
                 }
 
                 var offsetFromString = DataTranslateHelper.GetUtcDateTimeOffsetFromString(
@@ -53,7 +54,7 @@ public class MockWeatherProvider : IWeatherProvider
                     responseDto.Timezone);
 
                 if (offsetFromString.IsFailed)
-                    return Task.FromResult(Result.Fail<CurrentForecast>(offsetFromString.Errors));
+                    return Result.Fail<CurrentForecast>(offsetFromString.Errors);
                 
                 var result = new CurrentForecast
                 (
@@ -63,7 +64,7 @@ public class MockWeatherProvider : IWeatherProvider
                     _weatherCodeTranslator.Translate(responseDto.Current.WeatherCode)
                 );
 
-                return Task.FromResult(Result.Ok(result));
+                return Result.Ok(result);
             }
         }
     }
