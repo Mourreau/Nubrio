@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast;
 
-public class OpenMeteoDailyResponseDto
+public record OpenMeteoDailyResponseDto
 {
     // Meta data
     
