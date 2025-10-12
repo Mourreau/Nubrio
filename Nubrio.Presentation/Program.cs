@@ -1,7 +1,9 @@
 using Nubrio.Application.Interfaces;
 using Nubrio.Application.Services;
 using Nubrio.Infrastructure.MockProvider;
-using Nubrio.Infrastructure.OpenMeteo;
+using Nubrio.Infrastructure.OpenMeteo.OpenMeteoGeocoding;
+using Nubrio.Infrastructure.OpenMeteo.WmoCodes;
+using Nubrio.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,8 +23,8 @@ builder.Configuration.AddJsonFile(
     optional: false, 
     reloadOnChange: true);
 
-builder.Services.Configure<WeatherCodeMappings>(builder.Configuration.GetSection("WeatherCodeMappings"));
-builder.Services.AddSingleton<IWeatherCodeTranslator, WeatherCodeTranslator>();
+builder.Services.Configure<OpenMeteoWeatherCodeTranslator>(builder.Configuration.GetSection("WeatherCodeMappings"));
+builder.Services.AddSingleton<IWeatherCodeTranslator, OpenMeteoWeatherCodeTranslator>();
 
 if (builder.Environment.IsDevelopment())
 {
