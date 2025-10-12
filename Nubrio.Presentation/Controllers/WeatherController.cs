@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Nubrio.Application.Interfaces;
 using Nubrio.Presentation.DTOs.Response;
+using Nubrio.Presentation.Mappers;
 
 namespace Nubrio.Presentation.Controllers;
 
@@ -16,27 +17,16 @@ public class WeatherController : Controller
     }
 
     [HttpGet("{city}")]
-    public async Task<ActionResult<CurrentWeatherResponseDto>> GetWeatherByCity(
-        [FromRoute] string city)
+    public async Task<ActionResult<CurrentWeatherResponseDto>> GetCurrentForecastByCity(
+        [FromRoute] string city,
+        CancellationToken cancellationToken)
     {
-        var result = await _weatherForecastService.GetCurrentForecastAsync(city);
+        var currentForecast = await _weatherForecastService.GetCurrentForecastAsync(city, cancellationToken);
 
-        if (result.IsSuccess)
-        {
-            var response = new CurrentWeatherResponseDto
-            {
-                City = result.Value.ForecastLocation.Name,
-                Date = result.Value.Date,
-                Condition = result.Value.Conditions.ToString(),
-                Temperature = result.Value.Temperature,
-                IconUrl = String.Empty,
-                Source = "OpenMeteo",
-                FetchedAt = DateTime.UtcNow
-            };
-            return Ok(response);
-        }
+        if (currentForecast.IsFailed)
+            return BadRequest(currentForecast.Errors);
 
 
-    return NotFound();
+        return Ok(ForecastMapper.ToCurrentResponseDto(currentForecast.Value));
     }
-} 
+}
