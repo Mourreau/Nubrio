@@ -10,6 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IClock, Clock>();
+builder.Services.AddScoped<IConditionStringMapper, OpenMeteoConditionStringMapper>();
+builder.Services.AddScoped<IGeocodingService, OpenMeteoGeocoding>();
 builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
 builder.Services.AddScoped<IWeatherProvider, OpenMeteoWeatherProvider>();
 
