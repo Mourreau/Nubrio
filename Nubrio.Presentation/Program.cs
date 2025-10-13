@@ -23,7 +23,9 @@ builder.Configuration.AddJsonFile(
     optional: false, 
     reloadOnChange: true);
 
-builder.Services.Configure<OpenMeteoWeatherCodeTranslator>(builder.Configuration.GetSection("WeatherCodeMappings"));
+builder.Services.Configure<WeatherCodeMappings>(
+    builder.Configuration.GetSection("WeatherCodeMappings"));
+
 builder.Services.AddSingleton<IWeatherCodeTranslator, OpenMeteoWeatherCodeTranslator>();
 
 if (builder.Environment.IsDevelopment())
