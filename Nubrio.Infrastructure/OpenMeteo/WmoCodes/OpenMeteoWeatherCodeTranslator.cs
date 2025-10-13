@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Enums;
@@ -7,9 +8,12 @@ namespace Nubrio.Infrastructure.OpenMeteo.WmoCodes;
 public class OpenMeteoWeatherCodeTranslator : IWeatherCodeTranslator
 {
     private readonly Dictionary<int, WeatherConditions> _weatherConditions = new();
+    private readonly ILogger<OpenMeteoWeatherCodeTranslator> _logger;
 
-    public OpenMeteoWeatherCodeTranslator(IOptions<WeatherCodeMappings> mappings)
+    public OpenMeteoWeatherCodeTranslator(IOptions<WeatherCodeMappings> mappings,
+        ILogger<OpenMeteoWeatherCodeTranslator> logger)
     {
+        _logger = logger;
         var config = mappings.Value;
         
         var properties = typeof(WeatherCodeMappings).GetProperties();
@@ -29,6 +33,8 @@ public class OpenMeteoWeatherCodeTranslator : IWeatherCodeTranslator
                 }
             }
         }
+        
+        _logger.LogInformation("Loaded {Count} WMO weather codes into translator.", _weatherConditions.Count);
     }
     
     public WeatherConditions Translate(int wmoCode)
