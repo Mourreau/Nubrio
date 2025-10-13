@@ -16,4 +16,11 @@
       <ProjectReference Include="..\Nubrio.Domain\Nubrio.Domain.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="MockProvider\mock_weather_api_current_response.json" />
+      <EmbeddedResource Include="MockProvider\mock_weather_api_current_response.json" />
+      <None Remove="MockProvider\mock_weather_api_daily_response.json" />
+      <EmbeddedResource Include="MockProvider\mock_weather_api_daily_response.json" />
+    </ItemGroup>
+
 </Project>
