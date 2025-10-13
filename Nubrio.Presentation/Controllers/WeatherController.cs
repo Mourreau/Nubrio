@@ -7,7 +7,7 @@ namespace Nubrio.Presentation.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class WeatherController : Controller
+public class WeatherController : ControllerBase
 {
     private readonly IWeatherForecastService _weatherForecastService;
 
@@ -16,7 +16,7 @@ public class WeatherController : Controller
         _weatherForecastService = weatherForecastService;
     }
 
-    [HttpGet("{city}")]
+    [HttpGet("{city}/current")]
     public async Task<ActionResult<CurrentWeatherResponseDto>> GetCurrentForecastByCity(
         [FromRoute] string city,
         CancellationToken cancellationToken)
