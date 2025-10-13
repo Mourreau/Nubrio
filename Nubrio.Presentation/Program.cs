@@ -1,6 +1,7 @@
 using Nubrio.Application.Interfaces;
 using Nubrio.Application.Services;
 using Nubrio.Infrastructure.MockProvider;
+using Nubrio.Infrastructure.MockProvider.MockGeocoding;
 using Nubrio.Infrastructure.OpenMeteo.OpenMeteoGeocoding;
 using Nubrio.Infrastructure.OpenMeteo.WmoCodes;
 using Nubrio.Infrastructure.Services;
@@ -31,8 +32,9 @@ builder.Services.AddSingleton<IWeatherCodeTranslator, OpenMeteoWeatherCodeTransl
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddScoped<IWeatherProvider, MockWeatherProvider>();
+    builder.Services.AddScoped<IGeocodingService, MockGeocodingService>();
 }
-else{}
+
 
 var app = builder.Build();
 
