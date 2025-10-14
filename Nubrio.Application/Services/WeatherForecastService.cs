@@ -12,42 +12,62 @@ public class WeatherForecastService : IWeatherForecastService
     private readonly IGeocodingService _geocodingService;
     private readonly IClock _clock;
     private readonly IConditionStringMapper _conditionStringMapper;
+    private readonly ITimeZoneResolver _timeZoneResolver;
 
     public WeatherForecastService(
         IWeatherProvider weatherProvider,
         IGeocodingService geocodingService,
         IClock clock,
-        IConditionStringMapper conditionStringMapper)
+        IConditionStringMapper conditionStringMapper, 
+        ITimeZoneResolver timeZoneResolver)
     {
         _weatherProvider = weatherProvider;
         _geocodingService = geocodingService;
         _clock = clock;
         _conditionStringMapper = conditionStringMapper;
+        _timeZoneResolver = timeZoneResolver;
     }
 
     public async Task<Result<CurrentForecastDto>> GetCurrentForecastAsync(string city,
         CancellationToken cancellationToken)
     {
+        // 0. Проверка входных данных
         if (string.IsNullOrWhiteSpace(city))
             return Result.Fail("City must not be empty or whitespace");
 
+        // 1. Геокодинг
         var geocodingResult = await _geocodingService.ResolveAsync(city, cancellationToken);
 
         if (!geocodingResult.IsSuccess)
             return Result.Fail(geocodingResult.Errors);
 
+        // 2. Текущая погода
         var fetchResult = await _weatherProvider.GetCurrentForecastAsync(geocodingResult.Value, cancellationToken);
 
         if (fetchResult.IsFailed)
             return Result.Fail(fetchResult.Errors);
+        
+        // 3. Получение локального часового пояса
+        var timeZoneResolveResult = _timeZoneResolver.GetTimeZoneInfo(geocodingResult.Value.TimeZoneIana);
 
+        if (timeZoneResolveResult.IsFailed)
+            return Result.Fail(timeZoneResolveResult.Errors);
+        
+        
+        var localDateObserved = TimeZoneInfo.ConvertTime(
+            fetchResult.Value.ObservedAt,  timeZoneResolveResult.Value);
+        
+        var localFetched = TimeZoneInfo.ConvertTime(
+            _clock.UtcNow, timeZoneResolveResult.Value);
+        
+        // 4. Перевод в DTO
         var result = new CurrentForecastDto
         {
             City = geocodingResult.Value.Name,
-            Date = fetchResult.Value.ObservedAt,
+            Date = localDateObserved,
             Condition = _conditionStringMapper.From(fetchResult.Value.Condition),
             Temperature = fetchResult.Value.Temperature,
-            FetchedAt = _clock.UtcNow
+            FetchedAt = localFetched
         };
 
         return Result.Ok(result);
