@@ -18,6 +18,7 @@ builder.Services.AddScoped<IGeocodingService, OpenMeteoGeocoding>();
 builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
 builder.Services.AddScoped<IWeatherProvider, OpenMeteoWeatherProvider>();
 builder.Services.AddSingleton<IConditionStringMapper, OpenMeteoConditionStringMapper>();
+builder.Services.AddSingleton<ITimeZoneResolver, TimeZoneResolver>();
 
 builder.Configuration.AddJsonFile(
     "Configuration/weathercode-mapping.json", 
