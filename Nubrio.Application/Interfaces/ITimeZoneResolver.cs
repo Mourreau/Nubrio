@@ -6,5 +6,4 @@ public interface ITimeZoneResolver
 {
     Result<TimeZoneInfo> GetTimeZoneInfo(string timeZoneId);
     
-    string Normalize(string timeZoneId);
 }

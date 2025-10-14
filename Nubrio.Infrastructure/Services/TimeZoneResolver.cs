@@ -28,7 +28,7 @@ public class TimeZoneResolver : ITimeZoneResolver
         return Result.Ok(timeZoneInfo);
     }
 
-    public string Normalize(string timeZoneId)
+    private static string Normalize(string timeZoneId)
     {
         return timeZoneId.Trim();
     }
