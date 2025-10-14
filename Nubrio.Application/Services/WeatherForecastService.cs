@@ -31,19 +31,23 @@ public class WeatherForecastService : IWeatherForecastService
     public async Task<Result<CurrentForecastDto>> GetCurrentForecastAsync(string city,
         CancellationToken cancellationToken)
     {
+        // 0. Проверка входных данных
         if (string.IsNullOrWhiteSpace(city))
             return Result.Fail("City must not be empty or whitespace");
 
+        // 1. Геокодинг
         var geocodingResult = await _geocodingService.ResolveAsync(city, cancellationToken);
 
         if (!geocodingResult.IsSuccess)
             return Result.Fail(geocodingResult.Errors);
 
+        // 2. Текущая погода
         var fetchResult = await _weatherProvider.GetCurrentForecastAsync(geocodingResult.Value, cancellationToken);
 
         if (fetchResult.IsFailed)
             return Result.Fail(fetchResult.Errors);
         
+        // 3. Получение локального часового пояса
         var timeZoneResolveResult = _timeZoneResolver.GetTimeZoneInfo(geocodingResult.Value.TimeZoneIana);
 
         if (timeZoneResolveResult.IsFailed)
@@ -56,7 +60,7 @@ public class WeatherForecastService : IWeatherForecastService
         var localFetched = TimeZoneInfo.ConvertTime(
             _clock.UtcNow, timeZoneResolveResult.Value);
         
-        
+        // 4. Перевод в DTO
         var result = new CurrentForecastDto
         {
             City = geocodingResult.Value.Name,
