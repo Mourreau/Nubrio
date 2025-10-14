@@ -12,7 +12,7 @@ public class MockGeocodingService : IGeocodingService
             Guid.NewGuid(),
             city,
             new Coordinates(50, 60),
-            "Asia");
+            "Asia/Yekaterinburg");
         
         return Task.FromResult(Result.Ok(location));
     }
