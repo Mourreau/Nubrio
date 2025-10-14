@@ -6,7 +6,7 @@ using Nubrio.Presentation.Mappers;
 namespace Nubrio.Presentation.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/weather")]
 public class WeatherController : ControllerBase
 {
     private readonly IWeatherForecastService _weatherForecastService;
