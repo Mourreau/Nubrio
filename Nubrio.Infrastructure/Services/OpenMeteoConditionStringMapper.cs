@@ -18,7 +18,7 @@ public class OpenMeteoConditionStringMapper : IConditionStringMapper
         var name = condition.ToString();
 
         // Разделяем большие буквы пробелами: "PartlyCloudy" → "Partly Cloudy"
-        var readable =  Regex.Replace(name, "(?<!^)([A-Z])", " $1").ToLower();
+        var readable =  Regex.Replace(name, "(?<!^)([A-Z])", " $1").ToLowerInvariant();
         
         // Кладем в кеш и возвращаем строку
         _stringWmoCache[condition] = readable;
