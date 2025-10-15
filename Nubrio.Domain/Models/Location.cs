@@ -12,8 +12,8 @@ public class Location
 
         if (string.IsNullOrWhiteSpace(timeZoneIana))
         {
-            throw new ArgumentException($"'{nameof(name)}' cannot be null or whitespace.",
-                nameof(name));
+            throw new ArgumentException($"'{nameof(timeZoneIana)}' cannot be null or whitespace.",
+                nameof(timeZoneIana));
         }
         
         LocationId = locationId;
