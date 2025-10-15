@@ -19,15 +19,20 @@ public static class DataTranslateHelper
         {
             return Result.Fail($"Could not parse '{dateString}' to '{dateFormat}'.");
         }
-        
+
         // Получаем TimeZoneInfo из строки TimeZone внешнего API
-        if(!TimeZoneInfo.TryFindSystemTimeZoneById(timeZoneId, out var timeZoneInfo))
+        if (!TimeZoneInfo.TryFindSystemTimeZoneById(timeZoneId, out var timeZoneInfo))
             return Result.Fail($"Could not find time zone '{timeZoneId}'.");
-        
+
         // Переводим полученное время в UTC
-        DateTime utcTime = TimeZoneInfo.ConvertTimeToUtc(dateTimeResult, timeZoneInfo);
-
-        return Result.Ok(new DateTimeOffset(utcTime,  TimeSpan.Zero));
-
+        try
+        {
+            DateTime utcTime = TimeZoneInfo.ConvertTimeToUtc(dateTimeResult, timeZoneInfo);
+            return Result.Ok(new DateTimeOffset(utcTime, TimeSpan.Zero));
+        }
+        catch (Exception e)
+        {
+            return Result.Fail($"Could not convert '{dateString}' to '{timeZoneId}'.");
+        }
     }
 }
