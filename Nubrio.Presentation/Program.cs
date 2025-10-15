@@ -2,6 +2,7 @@ using Nubrio.Application.Interfaces;
 using Nubrio.Application.Services;
 using Nubrio.Infrastructure.MockProvider;
 using Nubrio.Infrastructure.MockProvider.MockGeocoding;
+using Nubrio.Infrastructure.OpenMeteo;
 using Nubrio.Infrastructure.OpenMeteo.OpenMeteoGeocoding;
 using Nubrio.Infrastructure.OpenMeteo.WmoCodes;
 using Nubrio.Infrastructure.Services;
