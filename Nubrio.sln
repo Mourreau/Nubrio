@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nubrio.Infrastructure", "Nu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nubrio.Presentation", "Nubrio.Presentation\Nubrio.Presentation.csproj", "{735BAE7F-B633-40D5-AF1A-7D84F6C52F5D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nubrio.Tests", "Nubrio.Tests\Nubrio.Tests.csproj", "{F1570AA1-2174-4214-9F42-B245A24768F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{735BAE7F-B633-40D5-AF1A-7D84F6C52F5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{735BAE7F-B633-40D5-AF1A-7D84F6C52F5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{735BAE7F-B633-40D5-AF1A-7D84F6C52F5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1570AA1-2174-4214-9F42-B245A24768F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1570AA1-2174-4214-9F42-B245A24768F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1570AA1-2174-4214-9F42-B245A24768F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1570AA1-2174-4214-9F42-B245A24768F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
