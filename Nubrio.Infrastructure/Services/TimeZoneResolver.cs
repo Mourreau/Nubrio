@@ -10,10 +10,11 @@ public class TimeZoneResolver : ITimeZoneResolver
     
     public Result<TimeZoneInfo> GetTimeZoneInfo(string timeZoneId)
     {
-        var normalizedId = Normalize(timeZoneId);
         
-        if (string.IsNullOrWhiteSpace(normalizedId))
+        if (string.IsNullOrWhiteSpace(timeZoneId))
             return Result.Fail("Time zone Id cannot be null or empty");
+        
+        var normalizedId = Normalize(timeZoneId);
         
         if(ZoneCache.TryGetValue(normalizedId, out var result))
             return Result.Ok(result);

@@ -42,10 +42,10 @@ public class WeatherForecastService : IWeatherForecastService
             return Result.Fail(geocodingResult.Errors);
 
         // 2. Текущая погода
-        var fetchResult = await _weatherProvider.GetCurrentForecastAsync(geocodingResult.Value, cancellationToken);
+        var providerResult = await _weatherProvider.GetCurrentForecastAsync(geocodingResult.Value, cancellationToken);
 
-        if (fetchResult.IsFailed)
-            return Result.Fail(fetchResult.Errors);
+        if (providerResult.IsFailed)
+            return Result.Fail(providerResult.Errors);
         
         // 3. Получение локального часового пояса
         var timeZoneResolveResult = _timeZoneResolver.GetTimeZoneInfo(geocodingResult.Value.TimeZoneIana);
@@ -55,7 +55,7 @@ public class WeatherForecastService : IWeatherForecastService
         
         
         var localDateObserved = TimeZoneInfo.ConvertTime(
-            fetchResult.Value.ObservedAt,  timeZoneResolveResult.Value);
+            providerResult.Value.ObservedAt,  timeZoneResolveResult.Value);
         
         var localFetched = TimeZoneInfo.ConvertTime(
             _clock.UtcNow, timeZoneResolveResult.Value);
@@ -65,8 +65,8 @@ public class WeatherForecastService : IWeatherForecastService
         {
             City = geocodingResult.Value.Name,
             Date = localDateObserved,
-            Condition = _conditionStringMapper.From(fetchResult.Value.Condition),
-            Temperature = fetchResult.Value.Temperature,
+            Condition = _conditionStringMapper.From(providerResult.Value.Condition),
+            Temperature = providerResult.Value.Temperature,
             FetchedAt = localFetched
         };
 
