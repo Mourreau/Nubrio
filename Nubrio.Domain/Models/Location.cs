@@ -6,21 +6,21 @@ public class Location
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new ArgumentException($"'{nameof(name)}' cannot be null or whitespace.",
-                nameof(name));
+            throw new ArgumentNullException(
+                nameof(name), $"'{nameof(name)}' cannot be null or whitespace.");
         }
 
         if (string.IsNullOrWhiteSpace(timeZoneIana))
         {
-            throw new ArgumentException($"'{nameof(timeZoneIana)}' cannot be null or whitespace.",
-                nameof(timeZoneIana));
+            throw new ArgumentNullException(
+                nameof(timeZoneIana), $"'{nameof(timeZoneIana)}' cannot be null or whitespace.");
         }
         
         LocationId = locationId;
         Name = name;
         Coordinates = coordinates ??
-                          throw new ArgumentException($"'{nameof(coordinates)}' cannot be null or whitespace.", 
-                          nameof(coordinates));
+                          throw new ArgumentNullException(
+                              nameof(coordinates), $"'{nameof(coordinates)}' cannot be null or whitespace.");
         TimeZoneIana = timeZoneIana;
     }
     public Guid LocationId { get; }
