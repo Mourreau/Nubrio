@@ -7,7 +7,7 @@ using Nubrio.Domain.Enums;
 using Nubrio.Infrastructure.Services;
 using Xunit.Abstractions;
 
-namespace Nubrio.Tests.Infrastructure.Services;
+namespace Nubrio.Tests.Infrastructure.UnitTests.Services;
 
 public class OpenMeteoConditionStringMapperTests
 {

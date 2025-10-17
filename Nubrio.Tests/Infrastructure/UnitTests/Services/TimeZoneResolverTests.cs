@@ -1,6 +1,6 @@
 using Nubrio.Infrastructure.Services;
 
-namespace Nubrio.Tests.Infrastructure.Services;
+namespace Nubrio.Tests.Infrastructure.UnitTests.Services;
 
 public class TimeZoneResolverTests
 {

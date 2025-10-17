@@ -2,7 +2,7 @@ using System.Globalization;
 using Nubrio.Infrastructure.Helpers;
 using Xunit.Abstractions;
 
-namespace Nubrio.Tests.Infrastructure.Helpers;
+namespace Nubrio.Tests.Infrastructure.UnitTests.Helpers;
 
 public class DataTranslateHelperTests
 {
