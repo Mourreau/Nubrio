@@ -10,7 +10,7 @@ public static class ForecastMapper
         return new CurrentWeatherResponseDto
         (
             currentForecast.City,
-            DateOnly.FromDateTime(currentForecast.Date.UtcDateTime),
+            DateOnly.FromDateTime(currentForecast.Date.DateTime),
             currentForecast.Condition,
             currentForecast.Temperature,
             "OpenMeteo",
