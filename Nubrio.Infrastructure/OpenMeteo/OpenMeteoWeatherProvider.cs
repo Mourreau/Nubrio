@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentResults;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Models;
@@ -13,7 +14,6 @@ public class OpenMeteoWeatherProvider : IWeatherProvider
     private readonly IWeatherCodeTranslator _weatherCodeTranslator;
     private readonly IOpenMeteoClient _client;
 
-    private int WeatherElements { get; set; }
 
     public OpenMeteoWeatherProvider(IOpenMeteoClient client, IWeatherCodeTranslator weatherCodeTranslator)
     {
@@ -47,10 +47,10 @@ public class OpenMeteoWeatherProvider : IWeatherProvider
             
             return Result.Fail(error);
         }
-
-        WeatherElements = validationResult.WeatherElements;
         
-        if (WeatherElements != 1) return Result.Fail("Weather elements out of range.Expected 1 element.");
+        
+        if (validationResult.WeatherElements != 1) 
+            return Result.Fail("Weather elements out of range.Expected 1 element.");
 
         var result = MapToDomainModelDailyForecastMean(openMeteoResponseDto,  location);
         
@@ -72,9 +72,12 @@ public class OpenMeteoWeatherProvider : IWeatherProvider
     private Result<DailyForecastMean> MapToDomainModelDailyForecastMean(
         OpenMeteoDailyMeanResponseDto openMeteoResponseDto, Location location)
     {
+        // Здесь конкретно указан [0] элемент листа т.к. в данном контексте элемент будет только один.
         const int index = 0;
+        
         var dateTranslate = DateOnly.Parse(
-            openMeteoResponseDto.Daily.Time[index]); // Здесь конкретно указан [0] элемент листа т.к. в данном контексте дата будет только одна.
+            openMeteoResponseDto.Daily.Time[index], 
+            CultureInfo.InvariantCulture); 
         
         
         var dailyForecastResult = new DailyForecastMean
