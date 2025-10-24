@@ -29,7 +29,7 @@ public class LocationTests
         Coordinates coord = new Coordinates(50, 60);
         string tz = "Asia/Yekaterinburg";
         
-        var ex = Assert.Throws<ArgumentException>(() => new Location(id, nullName, coord, tz));
+        var ex = Assert.Throws<ArgumentNullException>(() => new Location(id, nullName, coord, tz));
         
         Assert.Equal("name", ex.ParamName);
         Assert.Contains("cannot be null", ex.Message, StringComparison.OrdinalIgnoreCase);
@@ -43,7 +43,7 @@ public class LocationTests
         Coordinates coord = new Coordinates(50, 60);
         string tz = "Asia/Yekaterinburg";
         
-        var ex = Assert.Throws<ArgumentException>(() => new Location(id, spaceName, coord, tz));
+        var ex = Assert.Throws<ArgumentNullException>(() => new Location(id, spaceName, coord, tz));
         
         Assert.Equal("name", ex.ParamName);
         Assert.Contains("or whitespace", ex.Message, StringComparison.OrdinalIgnoreCase);
@@ -57,7 +57,7 @@ public class LocationTests
         Coordinates coord = new Coordinates(50, 60);
         string nullTz = null;
         
-        var ex = Assert.Throws<ArgumentException>(() => new Location(id, name, coord, nullTz));
+        var ex = Assert.Throws<ArgumentNullException>(() => new Location(id, name, coord, nullTz));
         
         Assert.Equal("timeZoneIana", ex.ParamName);
         Assert.Contains("cannot be null", ex.Message, StringComparison.OrdinalIgnoreCase);
@@ -71,7 +71,7 @@ public class LocationTests
         Coordinates coord = new Coordinates(50, 60);
         string spaceTz = " ";
         
-        var ex = Assert.Throws<ArgumentException>(() => new Location(id, name, coord, spaceTz));
+        var ex = Assert.Throws<ArgumentNullException>(() => new Location(id, name, coord, spaceTz));
         
         Assert.Equal("timeZoneIana", ex.ParamName);
         Assert.Contains("or whitespace", ex.Message, StringComparison.OrdinalIgnoreCase);
@@ -85,7 +85,7 @@ public class LocationTests
         Coordinates nullCoord = null;
         string tz = "Asia/Yekaterinburg";
         
-        var ex = Assert.Throws<ArgumentException>(() => new Location(id, name, nullCoord, tz));
+        var ex = Assert.Throws<ArgumentNullException>(() => new Location(id, name, nullCoord, tz));
         
         Assert.Equal("coordinates", ex.ParamName);
         Assert.Contains("cannot be null", ex.Message, StringComparison.OrdinalIgnoreCase);
