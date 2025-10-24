@@ -23,8 +23,8 @@ builder.Services.AddSingleton<IConditionStringMapper, OpenMeteoConditionStringMa
 builder.Services.AddSingleton<ITimeZoneResolver, TimeZoneResolver>();
 
 builder.Configuration.AddJsonFile(
-    "Configuration/weathercode-mapping.json", 
-    optional: false, 
+    "Configuration/weathercode-mapping.json",
+    optional: false,
     reloadOnChange: true);
 
 builder.Services.Configure<WeatherCodeMappings>(
@@ -37,9 +37,10 @@ if (builder.Environment.IsDevelopment())
     builder.Services.AddScoped<IWeatherProvider, MockWeatherProvider>();
     builder.Services.AddScoped<IGeocodingService, MockGeocodingService>();
 }
-
-
-builder.Services.AddOpenMeteo(builder.Configuration);
+else
+{
+    builder.Services.AddOpenMeteo(builder.Configuration);
+}
 
 
 var app = builder.Build();
