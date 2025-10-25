@@ -20,7 +20,7 @@ internal static class OpenMeteoResponseValidator
         var elemCount = d.Time.Count;
         if (elemCount == 0) return Fail("Daily arrays are empty", OpenMeteoErrorCodes.MalformedDailyMean);
         if (d.WeatherCode.Count != elemCount || d.Temperature2mMean.Count != elemCount)
-            return Fail($"Daily arrays have to be equal", OpenMeteoErrorCodes.MalformedDailyMean);
+            return Fail("Daily arrays must have equal lengths", OpenMeteoErrorCodes.MalformedDailyMean);
 
         // Проверка, что это действительно прогноз на 1 день
         if (elemCount > 1) return Fail($"Daily arrays have more than one element. Count: {elemCount}", OpenMeteoErrorCodes.MalformedDailyMean);
