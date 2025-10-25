@@ -47,8 +47,12 @@ internal sealed class OpenMeteoClient(IHttpClientFactory factory) : IOpenMeteoCl
             var options = new JsonSerializerOptions();
             options.PropertyNameCaseInsensitive = true;
 
-            return await JsonSerializer.DeserializeAsync<OpenMeteoDailyMeanResponseDto>(s, options, ct)
-                   ?? throw new InvalidOperationException("Deserialization failed");
+            var dto = await JsonSerializer.DeserializeAsync<OpenMeteoDailyMeanResponseDto>(s, options, ct);
+            if (dto is null)
+                return Result.Fail(new Error("Deserialization returned null")
+                    .WithMetadata("Code", OpenMeteoErrorCodes.Deserialization));
+            
+            return Result.Ok(dto);
         }
         catch (TaskCanceledException) when (!ct.IsCancellationRequested)
         {
