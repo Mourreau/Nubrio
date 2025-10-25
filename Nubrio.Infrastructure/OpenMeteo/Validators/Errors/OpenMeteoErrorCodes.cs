@@ -1,6 +1,6 @@
 namespace Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
 
-public class OpenMeteoErrorCodes
+public static class OpenMeteoErrorCodes
 {
     public const string MalformedDailyMean = "OpenMeteo.MalformedDailyMean";
     public const string UnitsMismatch      = "OpenMeteo.UnitsMismatch";
