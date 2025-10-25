@@ -50,14 +50,11 @@ public class OpenMeteoWeatherProvider : IWeatherProvider
         
         
         if (validationResult.WeatherElements != 1) 
-            return Result.Fail("Weather elements out of range.Expected 1 element.");
+            return Result.Fail("Weather elements out of range. Expected 1 element.");
 
         var result = MapToDomainModelDailyForecastMean(openMeteoResponseDto,  location);
-        
-        if (result.IsFailed) return Result.Fail<DailyForecastMean>(result.Errors);
-        
 
-        return Result.Ok(result.Value);
+        return Result.Ok(result);
     }
 
     public async Task<Result<CurrentForecast>> GetCurrentForecastAsync(Location location, CancellationToken cancellationToken)
@@ -69,7 +66,7 @@ public class OpenMeteoWeatherProvider : IWeatherProvider
     
     
     // -------------------------------------------------------------------------------------------------------------- //
-    private Result<DailyForecastMean> MapToDomainModelDailyForecastMean(
+    private DailyForecastMean MapToDomainModelDailyForecastMean(
         OpenMeteoDailyMeanResponseDto openMeteoResponseDto, Location location)
     {
         // Здесь конкретно указан [0] элемент листа т.к. в данном контексте элемент будет только один.
@@ -89,6 +86,6 @@ public class OpenMeteoWeatherProvider : IWeatherProvider
             // Берем [0] элемент листа. Прогноз на одну дату и значение в листе тоже будет одно.
         );
 
-        return Result.Ok(dailyForecastResult);
+        return dailyForecastResult;
     }
 }
