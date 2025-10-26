@@ -3,6 +3,7 @@ using System.Text.Json;
 using FluentResults;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Models;
+using Nubrio.Domain.Models.Daily;
 using Nubrio.Infrastructure.Helpers;
 using Nubrio.Infrastructure.OpenMeteo.DTOs.CurrentForecast;
 
@@ -20,10 +21,10 @@ public class MockWeatherProvider : IWeatherProvider
         _weatherCodeTranslator = weatherCodeTranslator;
     }
 
-    public Task<Result<DailyForecast>> GetDailyForecastRangeAsync(
-        Location location, DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken)
+    public Task<Result<DailyForecastMean>> GetDailyForecastMeanAsync(Location location, DateOnly date,
+        CancellationToken cancellationToken)
     {
-        return Task.FromResult(Result.Fail<DailyForecast>("Weather not found"));
+        return Task.FromResult(Result.Fail<DailyForecastMean>("Weather not found"));
     }
 
     public async Task<Result<CurrentForecast>> GetCurrentForecastAsync(Location location, CancellationToken cancellationToken)

@@ -1,8 +1,10 @@
 using Nubrio.Application.Interfaces;
 using Nubrio.Application.Services;
+using Nubrio.Infrastructure.Http;
 using Nubrio.Infrastructure.MockProvider;
 using Nubrio.Infrastructure.MockProvider.MockGeocoding;
 using Nubrio.Infrastructure.OpenMeteo;
+using Nubrio.Infrastructure.OpenMeteo.Extensions;
 using Nubrio.Infrastructure.OpenMeteo.OpenMeteoGeocoding;
 using Nubrio.Infrastructure.OpenMeteo.WmoCodes;
 using Nubrio.Infrastructure.Services;
@@ -17,13 +19,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IClock, Clock>();
 builder.Services.AddScoped<IGeocodingService, OpenMeteoGeocoding>();
 builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
-builder.Services.AddScoped<IWeatherProvider, OpenMeteoWeatherProvider>();
 builder.Services.AddSingleton<IConditionStringMapper, OpenMeteoConditionStringMapper>();
 builder.Services.AddSingleton<ITimeZoneResolver, TimeZoneResolver>();
 
 builder.Configuration.AddJsonFile(
-    "Configuration/weathercode-mapping.json", 
-    optional: false, 
+    "Configuration/weathercode-mapping.json",
+    optional: false,
     reloadOnChange: true);
 
 builder.Services.Configure<WeatherCodeMappings>(
@@ -35,6 +36,10 @@ if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddScoped<IWeatherProvider, MockWeatherProvider>();
     builder.Services.AddScoped<IGeocodingService, MockGeocodingService>();
+}
+else
+{
+    builder.Services.AddOpenMeteo(builder.Configuration);
 }
 
 
