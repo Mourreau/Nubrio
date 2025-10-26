@@ -27,14 +27,11 @@ public static class ServiceCollectionExtensions
             .Validate(o => o.TimeoutSeconds is >= 1 and <= 30, "TimeoutSeconds must be 1..30")
             .ValidateOnStart();
         
-        
-        services.Configure<OpenMeteoOptions>(section);
-        
         services.AddHttpClient(PipelineName, (serviceProvider, client) =>
             {
                 var opt = serviceProvider.GetRequiredService<IOptions<OpenMeteoOptions>>().Value;
                 client.BaseAddress = new Uri(opt.BaseUrl);
-                client.Timeout = TimeSpan.FromSeconds(opt.TimeoutSeconds);
+                client.Timeout = Timeout.InfiniteTimeSpan;
                 client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
             })
             .AddResilienceHandler(PipelineName, conf =>
@@ -53,7 +50,7 @@ public static class ServiceCollectionExtensions
                         || (args.Outcome.Exception is HttpRequestException)
                         || (args.Outcome.Exception is TaskCanceledException && !args.Context.CancellationToken.IsCancellationRequested))
                 });
-                conf.AddCircuitBreaker(new CircuitBreakerStrategyOptions<HttpResponseMessage>
+                conf.AddCircuitBreaker<HttpResponseMessage>(new CircuitBreakerStrategyOptions<HttpResponseMessage>
                 {
                     FailureRatio = 0.5,                // если >=50% исходов за окно — считаем, что всё плохо
                     MinimumThroughput = 8,             // минимум 8 запросов, чтобы статистика была осмысленной
