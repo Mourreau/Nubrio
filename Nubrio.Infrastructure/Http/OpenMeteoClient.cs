@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Text.Json;
 using FluentResults;
@@ -26,14 +27,15 @@ internal sealed class OpenMeteoClient(IHttpClientFactory factory) : IOpenMeteoCl
         DateOnly date,
         CancellationToken ct)
     {
-        var path = $"v1/forecast?latitude={latitude}" +
-                   $"&longitude={longitude}" +
-                   $"&daily=temperature_2m_mean,weather_code" +
-                   $"&timezone=auto&" +
-                   $"start_date={date:yyyy-MM-dd}&end_date={date:yyyy-MM-dd}";
+        var path = string.Create(CultureInfo.InvariantCulture, 
+            $"v1/forecast?latitude={latitude}" + 
+            $"&longitude={longitude}" +
+            $"&daily=temperature_2m_mean,weather_code" +
+            $"&timezone=auto&" +
+            $"start_date={date:yyyy-MM-dd}&end_date={date:yyyy-MM-dd}");
         try
         {
-            var response = await _httpClient.GetAsync(path, ct);
+            using var response = await _httpClient.GetAsync(path, ct);
 
             if (!response.IsSuccessStatusCode)
                 return Result.Fail(new Error(
