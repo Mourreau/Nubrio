@@ -32,7 +32,8 @@ builder.Services.Configure<WeatherCodeMappings>(
 
 builder.Services.AddSingleton<IWeatherCodeTranslator, OpenMeteoWeatherCodeTranslator>();
 
-if (builder.Environment.IsDevelopment())
+var useMock = builder.Configuration.GetValue<bool>("UseMockProviders");
+if (useMock)
 {
     builder.Services.AddScoped<IWeatherProvider, MockWeatherProvider>();
     builder.Services.AddScoped<IGeocodingService, MockGeocodingService>();
@@ -46,7 +47,7 @@ else
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
