@@ -43,4 +43,11 @@
       <Folder Include="Infrastructure\UnitTests\http\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="Infrastructure\UnitTests\OpenMeteo\TestData\OpenMeteoGeocodongTestData\geocoding-sample-en.json" />
+      <EmbeddedResource Include="Infrastructure\UnitTests\OpenMeteo\TestData\OpenMeteoGeocodingTestData\geocoding-sample-en.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </EmbeddedResource>
+    </ItemGroup>
+
 </Project>
