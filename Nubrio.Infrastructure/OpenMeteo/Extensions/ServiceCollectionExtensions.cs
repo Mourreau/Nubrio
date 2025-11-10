@@ -3,7 +3,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Nubrio.Application.Interfaces;
+using Nubrio.Domain.Providers;
 using Nubrio.Infrastructure.Http;
+using Nubrio.Infrastructure.Http.GeocodingClient;
+using Nubrio.Infrastructure.OpenMeteo.OpenMeteoForecast;
+using Nubrio.Infrastructure.OpenMeteo.OpenMeteoGeocoding;
 using Nubrio.Infrastructure.Options;
 using Polly;
 using Polly.CircuitBreaker;
@@ -13,57 +17,76 @@ namespace Nubrio.Infrastructure.OpenMeteo.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    
     public static IServiceCollection AddOpenMeteo(this IServiceCollection services, IConfiguration configuration)
     {
         var section = configuration.GetSection("WeatherProviders:OpenMeteo");
-        var clientOptions = section.Get<OpenMeteoOptions>() 
-                             ?? throw new InvalidOperationException("WeatherProviders:OpenMeteo is not configured.");
-        
-        
+        var clientOptions = section.Get<OpenMeteoOptions>()
+                            ?? throw new InvalidOperationException("WeatherProviders:OpenMeteo is not configured.");
+
+
         services.AddOptions<OpenMeteoOptions>()
             .Bind(section)
-            .Validate(o => !string.IsNullOrWhiteSpace(o.BaseUrl), "BaseUrl is required")
+            .Validate(o => !string.IsNullOrWhiteSpace(o.ForecastBaseUrl), "ForecastBaseUrl is required")
+            .Validate(o => !string.IsNullOrWhiteSpace(o.GeocodingBaseUrl), "GeocodingBaseUrl is required")
+            .Validate(o => Uri.TryCreate(o.ForecastBaseUrl, UriKind.Absolute, out var u1) && u1.Scheme == Uri.UriSchemeHttps,
+                "ForecastBaseUrl must be absolute https URL")
+            .Validate(o => Uri.TryCreate(o.GeocodingBaseUrl, UriKind.Absolute, out var u2) && u2.Scheme == Uri.UriSchemeHttps,
+                "GeocodingBaseUrl must be absolute https URL")
             .Validate(o => o.TimeoutSeconds is >= 1 and <= 30, "TimeoutSeconds must be 1..30")
             .ValidateOnStart();
-        
-        services.AddHttpClient(PipelineName, (serviceProvider, client) =>
+
+        // Forecast (typed)
+        services.AddHttpClient<IForecastClient, OpenMeteoForecastClient>((serviceProvider, client) =>
             {
                 var opt = serviceProvider.GetRequiredService<IOptions<OpenMeteoOptions>>().Value;
-                client.BaseAddress = new Uri(opt.BaseUrl);
+                client.BaseAddress = new Uri(opt.ForecastBaseUrl);
                 client.Timeout = Timeout.InfiniteTimeSpan;
                 client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
             })
-            .AddResilienceHandler(PipelineName, conf =>
-            {
-                conf.AddTimeout(TimeSpan.FromSeconds(clientOptions.TimeoutSeconds));
-                conf.AddRetry(new RetryStrategyOptions<HttpResponseMessage>
-                {
-                    MaxRetryAttempts = 3,
-                    DelayGenerator = _ => ValueTask.FromResult<TimeSpan?>(TimeSpan.FromMilliseconds(200)),
-                    ShouldHandle = args => ValueTask.FromResult(
-                        // 5xx
-                        (args.Outcome.Result is { StatusCode: >= (HttpStatusCode)500 })
-                        // 429
-                        || (args.Outcome.Result?.StatusCode == HttpStatusCode.TooManyRequests)
-                        // сетевые ошибки (но не явную отмену пользователя)
-                        || (args.Outcome.Exception is HttpRequestException)
-                        || (args.Outcome.Exception is TaskCanceledException && !args.Context.CancellationToken.IsCancellationRequested))
-                });
-                conf.AddCircuitBreaker<HttpResponseMessage>(new CircuitBreakerStrategyOptions<HttpResponseMessage>
-                {
-                    FailureRatio = 0.5,                // если >=50% исходов за окно — считаем, что всё плохо
-                    MinimumThroughput = 8,             // минимум 8 запросов, чтобы статистика была осмысленной
-                    SamplingDuration = TimeSpan.FromSeconds(30), // окно наблюдения
-                    BreakDuration = TimeSpan.FromSeconds(15)     // пауза перед «пробным» запросом
-                });
-            });
+            .AddResilienceHandler(WeatherProviders.OpenMeteoForecast, conf =>
+                ConfigureResilience(conf, clientOptions.TimeoutSeconds));
 
-        services.AddTransient<IOpenMeteoClient, OpenMeteoClient>();
+        // Geocoding (typed)
+        services.AddHttpClient<IGeocodingClient, OpenMeteoGeocodingClient>((serviceProvider, client) =>
+            {
+                var opt = serviceProvider.GetRequiredService<IOptions<OpenMeteoOptions>>().Value;
+                client.BaseAddress = new Uri(opt.GeocodingBaseUrl);
+                client.Timeout = Timeout.InfiniteTimeSpan;
+                client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+            })
+            .AddResilienceHandler(WeatherProviders.OpenMeteoGeocoding, conf =>
+                ConfigureResilience(conf, clientOptions.TimeoutSeconds));
+
+        services.AddScoped<IGeocodingProvider, OpenMeteoGeocodingProvider>();
         services.AddScoped<IWeatherProvider, OpenMeteoWeatherProvider>();
-        
+
         return services;
     }
+    
+    
+    // Общая настройка Polly для обоих клиентов
+    private static void ConfigureResilience(ResiliencePipelineBuilder<HttpResponseMessage> cfg, int timeoutSec)
+    {
+        cfg.AddTimeout(TimeSpan.FromSeconds(timeoutSec));
 
-    private const string PipelineName = "openmeteo";
+        cfg.AddRetry(new RetryStrategyOptions<HttpResponseMessage>
+        {
+            MaxRetryAttempts = 3,
+            DelayGenerator = _ => ValueTask.FromResult<TimeSpan?>(TimeSpan.FromMilliseconds(200)),
+            ShouldHandle = args => ValueTask.FromResult(
+                (args.Outcome.Result is { StatusCode: >= (HttpStatusCode)500 })                  // 5xx
+                || (args.Outcome.Result?.StatusCode == HttpStatusCode.TooManyRequests)          // 429
+                || (args.Outcome.Exception is HttpRequestException)                              // сетевые ошибки
+                || (args.Outcome.Exception is TaskCanceledException
+                    && !args.Context.CancellationToken.IsCancellationRequested))                // таймаут
+        });
+
+        cfg.AddCircuitBreaker(new CircuitBreakerStrategyOptions<HttpResponseMessage>
+        {
+            FailureRatio      = 0.5,                         // >=50% неуспехов в окне
+            MinimumThroughput = 8,                           // минимальная выборка
+            SamplingDuration  = TimeSpan.FromSeconds(30),    // окно наблюдения
+            BreakDuration     = TimeSpan.FromSeconds(15)     // пауза до "пробного" запроса
+        });
+    }
 }
