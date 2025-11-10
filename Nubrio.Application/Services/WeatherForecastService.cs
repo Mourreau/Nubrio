@@ -2,7 +2,6 @@ using FluentResults;
 using Nubrio.Application.DTOs.CurrentForecast;
 using Nubrio.Application.DTOs.DailyForecast;
 using Nubrio.Application.Interfaces;
-using Nubrio.Domain.Models;
 
 namespace Nubrio.Application.Services;
 
@@ -13,19 +12,22 @@ public class WeatherForecastService : IWeatherForecastService
     private readonly IClock _clock;
     private readonly IConditionStringMapper _conditionStringMapper;
     private readonly ITimeZoneResolver _timeZoneResolver;
+    private readonly ILanguageResolver _languageResolver;
 
     public WeatherForecastService(
         IWeatherProvider weatherProvider,
         IGeocodingProvider geocodingProvider,
         IClock clock,
         IConditionStringMapper conditionStringMapper, 
-        ITimeZoneResolver timeZoneResolver)
+        ITimeZoneResolver timeZoneResolver,
+        ILanguageResolver languageResolver)
     {
         _weatherProvider = weatherProvider;
         _geocodingProvider = geocodingProvider;
         _clock = clock;
         _conditionStringMapper = conditionStringMapper;
         _timeZoneResolver = timeZoneResolver;
+        _languageResolver = languageResolver;
     }
 
     public async Task<Result<CurrentForecastDto>> GetCurrentForecastAsync(string city,
@@ -34,6 +36,9 @@ public class WeatherForecastService : IWeatherForecastService
         // 0. Проверка входных данных
         if (string.IsNullOrWhiteSpace(city))
             return Result.Fail("City must not be empty or whitespace");
+        
+        // 0.5. Проверка на язык
+        var language = _languageResolver.Resolve(city);
 
         // 1. Геокодинг
         var geocodingResult = await _geocodingProvider.ResolveAsync(city, language, cancellationToken);
@@ -48,7 +53,7 @@ public class WeatherForecastService : IWeatherForecastService
             return Result.Fail(providerResult.Errors);
         
         // 3. Получение локального часового пояса
-        var timeZoneResolveResult = _timeZoneResolver.GetTimeZoneInfo(geocodingResult.Value.TimeZoneIana);
+        var timeZoneResolveResult = _timeZoneResolver.GetTimeZoneInfoById(geocodingResult.Value.TimeZoneIana);
 
         if (timeZoneResolveResult.IsFailed)
             return Result.Fail(timeZoneResolveResult.Errors);
