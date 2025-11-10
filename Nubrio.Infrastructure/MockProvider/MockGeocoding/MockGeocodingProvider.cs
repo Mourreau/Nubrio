@@ -4,9 +4,9 @@ using Nubrio.Domain.Models;
 
 namespace Nubrio.Infrastructure.MockProvider.MockGeocoding;
 
-public class MockGeocodingService : IGeocodingService
+public class MockGeocodingProvider : IGeocodingProvider
 {
-    public Task<Result<Location>> ResolveAsync(string city, CancellationToken cancellationToken)
+    public Task<Result<Location>> ResolveAsync(string city, string language, CancellationToken cancellationToken)
     {
         var location =  new Location(
             Guid.NewGuid(),

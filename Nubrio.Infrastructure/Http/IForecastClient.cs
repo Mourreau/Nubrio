@@ -4,7 +4,7 @@ using Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast.MeanForecast;
 
 namespace Nubrio.Infrastructure.Http;
 
-public interface IOpenMeteoClient
+public interface IForecastClient
 {
     public Task<Result<OpenMeteoDailyResponseDto>> GetOpenMeteoDailyAsync(
         double latitude,
