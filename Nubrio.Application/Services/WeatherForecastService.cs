@@ -9,20 +9,20 @@ namespace Nubrio.Application.Services;
 public class WeatherForecastService : IWeatherForecastService
 {
     private readonly IWeatherProvider _weatherProvider;
-    private readonly IGeocodingService _geocodingService;
+    private readonly IGeocodingProvider _geocodingProvider;
     private readonly IClock _clock;
     private readonly IConditionStringMapper _conditionStringMapper;
     private readonly ITimeZoneResolver _timeZoneResolver;
 
     public WeatherForecastService(
         IWeatherProvider weatherProvider,
-        IGeocodingService geocodingService,
+        IGeocodingProvider geocodingProvider,
         IClock clock,
         IConditionStringMapper conditionStringMapper, 
         ITimeZoneResolver timeZoneResolver)
     {
         _weatherProvider = weatherProvider;
-        _geocodingService = geocodingService;
+        _geocodingProvider = geocodingProvider;
         _clock = clock;
         _conditionStringMapper = conditionStringMapper;
         _timeZoneResolver = timeZoneResolver;
@@ -36,7 +36,7 @@ public class WeatherForecastService : IWeatherForecastService
             return Result.Fail("City must not be empty or whitespace");
 
         // 1. Геокодинг
-        var geocodingResult = await _geocodingService.ResolveAsync(city, cancellationToken);
+        var geocodingResult = await _geocodingProvider.ResolveAsync(city, language, cancellationToken);
 
         if (!geocodingResult.IsSuccess)
             return Result.Fail(geocodingResult.Errors);
