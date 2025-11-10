@@ -9,7 +9,7 @@ public class TimeZoneResolverTests
     [Fact]
     public void GetTimeZoneInfo_ValidId_ShouldReturnSuccess()
     {
-        var result = _resolver.GetTimeZoneInfo("Europe/Moscow");
+        var result = _resolver.GetTimeZoneInfoById("Europe/Moscow");
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
@@ -19,8 +19,8 @@ public class TimeZoneResolverTests
     [Fact]
     public void GetTimeZoneInfo_RepeatedCall_ShouldReturnFromCache()
     {
-        var first = _resolver.GetTimeZoneInfo("Europe/Moscow");
-        var second = _resolver.GetTimeZoneInfo("Europe/Moscow");
+        var first = _resolver.GetTimeZoneInfoById("Europe/Moscow");
+        var second = _resolver.GetTimeZoneInfoById("Europe/Moscow");
 
         Assert.True(first.IsSuccess);
         Assert.True(second.IsSuccess);
@@ -30,7 +30,7 @@ public class TimeZoneResolverTests
     [Fact]
     public void GetTimeZoneInfo_InvalidId_ShouldFail()
     {
-        var result = _resolver.GetTimeZoneInfo("No/Such/Zone");
+        var result = _resolver.GetTimeZoneInfoById("No/Such/Zone");
 
         Assert.True(result.IsFailed);
         Assert.Contains("Cannot resolve", result.Errors.First().Message);
@@ -42,7 +42,7 @@ public class TimeZoneResolverTests
     [InlineData(null)]
     public void GetTimeZoneInfo_NullOrEmpty_ShouldFail(string id)
     {
-        var result = _resolver.GetTimeZoneInfo(id);
+        var result = _resolver.GetTimeZoneInfoById(id);
 
         Assert.True(result.IsFailed);
         Assert.Contains("null or empty", result.Errors.First().Message);
@@ -51,7 +51,7 @@ public class TimeZoneResolverTests
     [Fact]
     public void GetTimeZoneInfo_WithSpaces_ShouldNormalizeAndSucceed()
     {
-        var result = _resolver.GetTimeZoneInfo("   Europe/Moscow   ");
+        var result = _resolver.GetTimeZoneInfoById("   Europe/Moscow   ");
 
         Assert.True(result.IsSuccess);
         Assert.Equal("Europe/Moscow", result.Value.Id);
@@ -60,8 +60,8 @@ public class TimeZoneResolverTests
     [Fact]
     public void GetTimeZoneInfo_DifferentZones_ShouldCacheBoth()
     {
-        var moscow = _resolver.GetTimeZoneInfo("Europe/Moscow");
-        var yekaterinburg = _resolver.GetTimeZoneInfo("Asia/Yekaterinburg");
+        var moscow = _resolver.GetTimeZoneInfoById("Europe/Moscow");
+        var yekaterinburg = _resolver.GetTimeZoneInfoById("Asia/Yekaterinburg");
 
         Assert.True(moscow.IsSuccess);
         Assert.True(yekaterinburg.IsSuccess);

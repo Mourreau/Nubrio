@@ -16,19 +16,21 @@ public class GetCurrentForecastAsyncTests
     private readonly WeatherForecastService _weatherForecastService;
 
     private readonly Mock<IWeatherProvider> _weatherProviderMock;
-    private readonly Mock<IGeocodingService> _geocodingServiceMock;
+    private readonly Mock<IGeocodingProvider> _geocodingServiceMock;
     private readonly Mock<IClock> _clockMock;
     private readonly Mock<IConditionStringMapper> _conditionStringMapperMock;
     private readonly Mock<ITimeZoneResolver> _timeZoneResolverMock;
+    private readonly Mock<ILanguageResolver> _languageResolverMock;
 
     public GetCurrentForecastAsyncTests(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
         _weatherProviderMock = new Mock<IWeatherProvider>();
-        _geocodingServiceMock = new Mock<IGeocodingService>();
+        _geocodingServiceMock = new Mock<IGeocodingProvider>();
         _clockMock = new Mock<IClock>();
         _conditionStringMapperMock = new Mock<IConditionStringMapper>();
         _timeZoneResolverMock = new Mock<ITimeZoneResolver>();
+        _languageResolverMock = new  Mock<ILanguageResolver>();
 
         _weatherForecastService = new WeatherForecastService
         (
@@ -36,7 +38,8 @@ public class GetCurrentForecastAsyncTests
             _geocodingServiceMock.Object,
             _clockMock.Object,
             _conditionStringMapperMock.Object,
-            _timeZoneResolverMock.Object
+            _timeZoneResolverMock.Object,
+            _languageResolverMock.Object
         );
     }
 
@@ -52,12 +55,13 @@ public class GetCurrentForecastAsyncTests
         var observedAtUtc = new DateTimeOffset(2025, 9, 30, 8, 15, 0, TimeSpan.Zero); // то, что пришло из внешнего API (UTC)
         var fixedNowUtc   = new DateTimeOffset(2025, 10, 1, 12, 00, 00, TimeSpan.Zero); // системные «сейчас»
         
+        
         // 1. Геокодинг - правильный
         var geocodingData = new Location
             (Guid.NewGuid(), city, new Coordinates(50, 100), timeZoneIana);
 
         _geocodingServiceMock.Setup(geocode => 
-                geocode.ResolveAsync(city, It.IsAny<CancellationToken>()))
+                geocode.ResolveAsync(city,"en", It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok(geocodingData));
 
         // 2. Текущая погода
@@ -77,7 +81,7 @@ public class GetCurrentForecastAsyncTests
         var tz = TimeZoneInfo.FindSystemTimeZoneById(timeZoneIana);
         
         _timeZoneResolverMock.Setup(tzResolver =>
-            tzResolver.GetTimeZoneInfo(timeZoneIana))
+            tzResolver.GetTimeZoneInfoById(timeZoneIana))
             .Returns(Result.Ok(tz));
         
         // 3.5 Переводим время в локальное
@@ -107,9 +111,9 @@ public class GetCurrentForecastAsyncTests
         dto.Date.Should().Be(expectedObservedLocal); 
         dto.FetchedAt.Should().Be(expectedFetchedLocal);
 
-        _geocodingServiceMock.Verify(x => x.ResolveAsync(city, It.IsAny<CancellationToken>()), Times.Once);
+        _geocodingServiceMock.Verify(x => x.ResolveAsync(city, "en", It.IsAny<CancellationToken>()), Times.Once);
         _weatherProviderMock.Verify(x => x.GetCurrentForecastAsync(geocodingData, It.IsAny<CancellationToken>()), Times.Once);
-        _timeZoneResolverMock.Verify(x => x.GetTimeZoneInfo(timeZoneIana), Times.Once);
+        _timeZoneResolverMock.Verify(x => x.GetTimeZoneInfoById(timeZoneIana), Times.Once);
         _conditionStringMapperMock.Verify(x => x.From(enumCondition), Times.Once);
         
         _testOutputHelper.WriteLine($"condition: {result.Value.Condition}");
@@ -134,7 +138,7 @@ public class GetCurrentForecastAsyncTests
         result.Errors.First().Message.Should().Be("City must not be empty or whitespace");
 
         _geocodingServiceMock.Verify(geocode =>
-            geocode.ResolveAsync(emptyCity, It.IsAny<CancellationToken>()), Times.Never);
+            geocode.ResolveAsync(emptyCity, "en", It.IsAny<CancellationToken>()), Times.Never);
         
         _testOutputHelper.WriteLine($"city: {emptyCity} is null or empty or whitespace");
     }
@@ -147,7 +151,7 @@ public class GetCurrentForecastAsyncTests
         // 1. Геокодинг - с ошибкой
 
         _geocodingServiceMock.Setup(geocode => 
-                geocode.ResolveAsync(city, It.IsAny<CancellationToken>()))
+                geocode.ResolveAsync(city, "en", It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Fail("City cannot be found"));
         
         
