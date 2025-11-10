@@ -7,15 +7,15 @@ using Nubrio.Infrastructure.Http;
 using Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast.MeanForecast;
 using Nubrio.Infrastructure.OpenMeteo.Validators;
 
-namespace Nubrio.Infrastructure.OpenMeteo;
+namespace Nubrio.Infrastructure.OpenMeteo.OpenMeteoForecast;
 
 public class OpenMeteoWeatherProvider : IWeatherProvider
 {
     private readonly IWeatherCodeTranslator _weatherCodeTranslator;
-    private readonly IOpenMeteoClient _client;
+    private readonly IForecastClient _client;
 
 
-    public OpenMeteoWeatherProvider(IOpenMeteoClient client, IWeatherCodeTranslator weatherCodeTranslator)
+    public OpenMeteoWeatherProvider(IForecastClient client, IWeatherCodeTranslator weatherCodeTranslator)
     {
         _weatherCodeTranslator = weatherCodeTranslator;
         _client = client;
