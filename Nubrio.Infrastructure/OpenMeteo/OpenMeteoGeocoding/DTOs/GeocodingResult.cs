@@ -8,6 +8,9 @@ namespace Nubrio.Infrastructure.OpenMeteo.OpenMeteoGeocoding.DTOs;
 public sealed class GeocodingResult
 { 
     
+    [JsonPropertyName("id")]
+    public required int Id { get; init; }
+    
     [JsonPropertyName("name")]
     public required string Name { get; init; }
     
