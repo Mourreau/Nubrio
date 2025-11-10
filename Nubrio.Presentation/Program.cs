@@ -1,9 +1,7 @@
 using Nubrio.Application.Interfaces;
 using Nubrio.Application.Services;
-using Nubrio.Infrastructure.Http;
 using Nubrio.Infrastructure.MockProvider;
 using Nubrio.Infrastructure.MockProvider.MockGeocoding;
-using Nubrio.Infrastructure.OpenMeteo;
 using Nubrio.Infrastructure.OpenMeteo.Extensions;
 using Nubrio.Infrastructure.OpenMeteo.OpenMeteoGeocoding;
 using Nubrio.Infrastructure.OpenMeteo.WmoCodes;
@@ -17,7 +15,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IClock, Clock>();
-builder.Services.AddScoped<IGeocodingService, OpenMeteoGeocoding>();
+builder.Services.AddScoped<IGeocodingProvider, OpenMeteoGeocodingProvider>();
 builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
 builder.Services.AddSingleton<IConditionStringMapper, OpenMeteoConditionStringMapper>();
 builder.Services.AddSingleton<ITimeZoneResolver, TimeZoneResolver>();
@@ -30,13 +28,17 @@ builder.Configuration.AddJsonFile(
 builder.Services.Configure<WeatherCodeMappings>(
     builder.Configuration.GetSection("WeatherCodeMappings"));
 
+builder.Services.Configure<LanguageResolverOptions>(
+    builder.Configuration.GetSection("Localization"));
+
 builder.Services.AddSingleton<IWeatherCodeTranslator, OpenMeteoWeatherCodeTranslator>();
+builder.Services.AddSingleton<ILanguageResolver, LanguageResolver>();
 
 var useMock = builder.Configuration.GetValue<bool>("UseMockProviders");
 if (useMock)
 {
     builder.Services.AddScoped<IWeatherProvider, MockWeatherProvider>();
-    builder.Services.AddScoped<IGeocodingService, MockGeocodingService>();
+    builder.Services.AddScoped<IGeocodingProvider, MockGeocodingProvider>();
 }
 else
 {
