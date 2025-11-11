@@ -12,21 +12,23 @@ internal sealed class OpenMeteoGeocodingClient(HttpClient httpClient) : IGeocodi
     public async Task<Result<OpenMeteoGeocodingResponse>> GeocodeAsync(
         string city, int count, string language, CancellationToken ct)
     {
-        var queryCity = Uri.EscapeDataString(city);
-        
         if (string.IsNullOrEmpty(city) || string.IsNullOrEmpty(language))
             return Result.Fail(new Error($"City and language are required"));
 
+        // Экранируем строку параметра 'City'
+        var encodedCity = Uri.EscapeDataString(city);
+
         var path = string.Create(CultureInfo.InvariantCulture,
-            $"v1/search?name={queryCity}&count={count}&language={language}&format=json");
+            $"v1/search?name={encodedCity}&count={count}&language={language}&format=json");
+        var request = new HttpRequestMessage(HttpMethod.Get, new Uri(httpClient.BaseAddress!, path));
 
         try
         {
-            using var response = await httpClient.GetAsync(path, ct);
-            
+            using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+
             if (!response.IsSuccessStatusCode)
                 return Result.Fail(new Error(
-                        $"Cannot get the required path: {path}. Request has ended with status code: {response.StatusCode}")
+                        $"Open-Meteo responded {response.StatusCode} for {response.RequestMessage!.RequestUri}")
                     .WithMetadata("Code", response.StatusCode == HttpStatusCode.TooManyRequests
                         ? OpenMeteoErrorCodes.TooManyRequests
                         : OpenMeteoErrorCodes.Http5xx));
@@ -40,7 +42,7 @@ internal sealed class OpenMeteoGeocodingClient(HttpClient httpClient) : IGeocodi
             if (dto is null)
                 return Result.Fail(new Error("Deserialization returned null")
                     .WithMetadata("Code", OpenMeteoErrorCodes.Deserialization));
-            
+
             return Result.Ok(dto);
         }
         catch (TaskCanceledException) when (!ct.IsCancellationRequested)
