@@ -2,6 +2,7 @@ using FluentResults;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Models;
 using Nubrio.Infrastructure.Http.GeocodingClient;
+using Nubrio.Infrastructure.Options;
 
 namespace Nubrio.Infrastructure.OpenMeteo.OpenMeteoGeocoding;
 

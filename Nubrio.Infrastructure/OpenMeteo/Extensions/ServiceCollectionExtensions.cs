@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Nubrio.Application.Interfaces;
-using Nubrio.Domain.Providers;
 using Nubrio.Infrastructure.Http;
 using Nubrio.Infrastructure.Http.GeocodingClient;
 using Nubrio.Infrastructure.OpenMeteo.OpenMeteoForecast;
@@ -43,7 +42,7 @@ public static class ServiceCollectionExtensions
                 client.Timeout = Timeout.InfiniteTimeSpan;
                 client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
             })
-            .AddResilienceHandler(WeatherProviders.OpenMeteoForecast, conf =>
+            .AddResilienceHandler(OpenMeteoProviderInfo.OpenMeteoForecast, conf =>
                 ConfigureResilience(conf, clientOptions.TimeoutSeconds));
 
         // Geocoding (typed)
@@ -54,7 +53,7 @@ public static class ServiceCollectionExtensions
                 client.Timeout = Timeout.InfiniteTimeSpan;
                 client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
             })
-            .AddResilienceHandler(WeatherProviders.OpenMeteoGeocoding, conf =>
+            .AddResilienceHandler(OpenMeteoProviderInfo.OpenMeteoGeocoding, conf =>
                 ConfigureResilience(conf, clientOptions.TimeoutSeconds));
 
         services.AddScoped<IGeocodingProvider, OpenMeteoGeocodingProvider>();

@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Models;
-using Nubrio.Domain.Providers;
 using Nubrio.Infrastructure.Http;
 using Nubrio.Infrastructure.OpenMeteo.Extensions;
 using Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
