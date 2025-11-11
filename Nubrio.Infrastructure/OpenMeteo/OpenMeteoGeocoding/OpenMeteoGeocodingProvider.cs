@@ -20,7 +20,7 @@ public class OpenMeteoGeocodingProvider : IGeocodingProvider
     {
         if (string.IsNullOrWhiteSpace(city))
             return Result.Fail("City cannot be null or whitespace.");
-        
+
         var openMeteoGeoResponse = await _geocodingClient.GeocodeAsync(city, CityCount, language, cancellationToken);
 
         if (openMeteoGeoResponse.IsFailed)
@@ -35,8 +35,6 @@ public class OpenMeteoGeocodingProvider : IGeocodingProvider
 
         if (string.IsNullOrEmpty(resultDto.Timezone))
         {
-            
-            
             return Result.Fail($"No timezone found for city '{city}'.");
         }
 
@@ -44,8 +42,14 @@ public class OpenMeteoGeocodingProvider : IGeocodingProvider
             Guid.NewGuid(),
             resultDto.Name,
             new Coordinates(resultDto.Latitude, resultDto.Longitude),
-            resultDto.Timezone);
-        
+            resultDto.Timezone,
+            new
+            (
+                OpenMeteoProviderInfo.OpenMeteoGeocoding,
+                resultDto.Id
+            ));
+
+
         return Result.Ok(location);
     }
 }
