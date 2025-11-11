@@ -14,6 +14,9 @@ internal sealed class OpenMeteoGeocodingClient(HttpClient httpClient) : IGeocodi
     {
         var queryCity = Uri.EscapeDataString(city);
         
+        if (string.IsNullOrEmpty(city) || string.IsNullOrEmpty(language))
+            return Result.Fail(new Error($"City and language are required"));
+
         var path = string.Create(CultureInfo.InvariantCulture,
             $"v1/search?name={queryCity}&count={count}&language={language}&format=json");
 
