@@ -3,7 +3,7 @@ using FluentResults;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Models;
 using Nubrio.Domain.Models.Daily;
-using Nubrio.Infrastructure.Http;
+using Nubrio.Infrastructure.Http.ForecastClient;
 using Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast.MeanForecast;
 using Nubrio.Infrastructure.OpenMeteo.Validators;
 

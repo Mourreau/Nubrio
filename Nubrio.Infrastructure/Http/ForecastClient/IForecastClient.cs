@@ -2,7 +2,7 @@ using FluentResults;
 using Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast;
 using Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast.MeanForecast;
 
-namespace Nubrio.Infrastructure.Http;
+namespace Nubrio.Infrastructure.Http.ForecastClient;
 
 public interface IForecastClient
 {

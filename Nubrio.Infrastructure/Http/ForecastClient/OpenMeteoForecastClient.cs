@@ -6,7 +6,7 @@ using Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast;
 using Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast.MeanForecast;
 using Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
 
-namespace Nubrio.Infrastructure.Http;
+namespace Nubrio.Infrastructure.Http.ForecastClient;
 
 internal sealed class OpenMeteoForecastClient(HttpClient httpClient) : IForecastClient
 {

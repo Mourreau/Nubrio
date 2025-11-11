@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Models;
-using Nubrio.Infrastructure.Http;
+using Nubrio.Infrastructure.Http.ForecastClient;
 using Nubrio.Infrastructure.OpenMeteo.Extensions;
 using Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
 using Nubrio.Infrastructure.OpenMeteo.WmoCodes;
@@ -18,7 +18,7 @@ public class OpenMeteoProviderIntegrationTests
 {
     private const string ForecastBaseUrl = "https://api.test.forecast/";
     private const string GeocodeBaseUrl = "https://api.test.geocode/";
-    
+
     private static ServiceProvider BuildProvider(HttpMessageHandler handler, string forecastBaseUri,
         string? geocodingBaseUri, int timeoutSeconds = 5)
     {
@@ -32,18 +32,18 @@ public class OpenMeteoProviderIntegrationTests
             .Build();
 
         var services = new ServiceCollection();
-        
+
         // Зависимости домена/мапперы, как в Program.cs
         services.AddSingleton<IConditionStringMapper, OpenMeteoConditionStringMapper>();
         services.AddSingleton<ITimeZoneResolver, TimeZoneResolver>();
         services.AddSingleton<IWeatherCodeTranslator, OpenMeteoWeatherCodeTranslator>();
-        
+
         // Провайдер + клиент
         services.AddOpenMeteo(cfg);
 
         services.AddHttpClient<IForecastClient, OpenMeteoForecastClient>()
             .ConfigurePrimaryHttpMessageHandler(() => handler);
-        
+
         return services.BuildServiceProvider();
     }
 
@@ -55,17 +55,16 @@ public class OpenMeteoProviderIntegrationTests
         var handler = new StubHttpMessageHandler((_, __) => Json200(validJson));
         var sp = BuildProvider(handler, ForecastBaseUrl, GeocodeBaseUrl);
         var provider = sp.GetRequiredService<IWeatherProvider>();
-        
+
         var location = new Location(
-        Guid.NewGuid(), "Moscow", new Coordinates(55.75, 37.62), "Europe/Moscow");
+            Guid.NewGuid(), "Moscow", new Coordinates(55.75, 37.62), "Europe/Moscow");
         var date = DateOnly.Parse("2025-10-20", System.Globalization.CultureInfo.InvariantCulture);
-        
+
         // Act
         var result = await provider.GetDailyForecastMeanAsync(location, date, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue(string.Join(" | ", result.Errors.Select(e => e.Message)));
-
     }
 
     [Theory]
@@ -74,19 +73,20 @@ public class OpenMeteoProviderIntegrationTests
     {
         // Arrange 
         var handler = new StubHttpMessageHandler((_, call) =>
-            call < 3 ? new  HttpResponseMessage(HttpStatusCode.InternalServerError)
+            call < 3
+                ? new HttpResponseMessage(HttpStatusCode.InternalServerError)
                 : Json200(validJson));
-        
+
         var sp = BuildProvider(handler, ForecastBaseUrl, GeocodeBaseUrl);
         var provider = sp.GetRequiredService<IWeatherProvider>();
-        
+
         var location = new Location(
             Guid.NewGuid(), "Moscow", new Coordinates(55.75, 37.62), "Europe/Moscow");
         var date = DateOnly.Parse("2025-10-20", System.Globalization.CultureInfo.InvariantCulture);
-        
+
         // Act
         var result = await provider.GetDailyForecastMeanAsync(location, date, CancellationToken.None);
-        
+
         // Assert
         result.IsSuccess.Should().BeTrue(string.Join(" | ", result.Errors.Select(e => e.Message)));
         handler.Calls.Should().Be(3);
@@ -98,15 +98,15 @@ public class OpenMeteoProviderIntegrationTests
     {
         // Arrange 
         var badJson = validJson.Replace("\"°C\"", "\"°F\"");
-        
+
         var handler = new StubHttpMessageHandler((_, __) => Json200(badJson));
         var sp = BuildProvider(handler, ForecastBaseUrl, GeocodeBaseUrl);
         var provider = sp.GetRequiredService<IWeatherProvider>();
-        
+
         var location = new Location(
             Guid.NewGuid(), "Moscow", new Coordinates(55.75, 37.62), "Europe/Moscow");
         var date = DateOnly.Parse("2025-10-20", System.Globalization.CultureInfo.InvariantCulture);
-        
+
         // Act
         var result = await provider.GetDailyForecastMeanAsync(location, date, CancellationToken.None);
 
@@ -116,10 +116,10 @@ public class OpenMeteoProviderIntegrationTests
         result.Errors.Select(e => e.Metadata?["Code"] as string)
             .Should().Contain(OpenMeteoErrorCodes.UnitsMismatch);
     }
-    
-    
+
+
     // ------------------------------------------------------------------------------------------------------------- //
-    
+
     private static HttpResponseMessage Json200(string json) =>
         new(HttpStatusCode.OK)
         {

@@ -5,8 +5,7 @@ using Moq;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Enums;
 using Nubrio.Domain.Models;
-using Nubrio.Infrastructure.Http;
-using Nubrio.Infrastructure.OpenMeteo;
+using Nubrio.Infrastructure.Http.ForecastClient;
 using Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast.MeanForecast;
 using Nubrio.Infrastructure.OpenMeteo.OpenMeteoForecast;
 using Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
@@ -126,7 +125,6 @@ public class GetDailyForecastMeanAsyncTests
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    
 
     [Theory]
     [MemberData(
@@ -172,12 +170,14 @@ public class GetDailyForecastMeanAsyncTests
 
         _testOutputHelper.WriteLine(result.Errors[0].Message);
     }
-    
+
     [Theory]
     [MemberData(
         nameof(GetDailyForecastMeanAsyncTestData.TwoElementsInArray),
         MemberType = typeof(GetDailyForecastMeanAsyncTestData))]
-    public async Task GetDailyForecastMean_WhenDailyArraysContainsMoreThenOneElement_ReturnsFail(List<string> dates, List<double> temps,
+    public async Task GetDailyForecastMean_WhenDailyArraysContainsMoreThenOneElement_ReturnsFail(
+        List<string> dates,
+        List<double> temps,
         List<int> codes)
     {
         // Arrange

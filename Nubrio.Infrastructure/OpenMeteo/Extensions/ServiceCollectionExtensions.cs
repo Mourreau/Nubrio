@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Nubrio.Application.Interfaces;
-using Nubrio.Infrastructure.Http;
+using Nubrio.Infrastructure.Http.ForecastClient;
 using Nubrio.Infrastructure.Http.GeocodingClient;
 using Nubrio.Infrastructure.OpenMeteo.OpenMeteoForecast;
 using Nubrio.Infrastructure.OpenMeteo.OpenMeteoGeocoding;
@@ -27,9 +27,11 @@ public static class ServiceCollectionExtensions
             .Bind(section)
             .Validate(o => !string.IsNullOrWhiteSpace(o.ForecastBaseUrl), "ForecastBaseUrl is required")
             .Validate(o => !string.IsNullOrWhiteSpace(o.GeocodingBaseUrl), "GeocodingBaseUrl is required")
-            .Validate(o => Uri.TryCreate(o.ForecastBaseUrl, UriKind.Absolute, out var u1) && u1.Scheme == Uri.UriSchemeHttps,
+            .Validate(
+                o => Uri.TryCreate(o.ForecastBaseUrl, UriKind.Absolute, out var u1) && u1.Scheme == Uri.UriSchemeHttps,
                 "ForecastBaseUrl must be absolute https URL")
-            .Validate(o => Uri.TryCreate(o.GeocodingBaseUrl, UriKind.Absolute, out var u2) && u2.Scheme == Uri.UriSchemeHttps,
+            .Validate(
+                o => Uri.TryCreate(o.GeocodingBaseUrl, UriKind.Absolute, out var u2) && u2.Scheme == Uri.UriSchemeHttps,
                 "GeocodingBaseUrl must be absolute https URL")
             .Validate(o => o.TimeoutSeconds is >= 1 and <= 30, "TimeoutSeconds must be 1..30")
             .ValidateOnStart();
@@ -61,8 +63,8 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
-    
-    
+
+
     // Общая настройка Polly для обоих клиентов
     private static void ConfigureResilience(ResiliencePipelineBuilder<HttpResponseMessage> cfg, int timeoutSec)
     {
@@ -73,19 +75,19 @@ public static class ServiceCollectionExtensions
             MaxRetryAttempts = 3,
             DelayGenerator = _ => ValueTask.FromResult<TimeSpan?>(TimeSpan.FromMilliseconds(200)),
             ShouldHandle = args => ValueTask.FromResult(
-                (args.Outcome.Result is { StatusCode: >= (HttpStatusCode)500 })                  // 5xx
-                || (args.Outcome.Result?.StatusCode == HttpStatusCode.TooManyRequests)          // 429
-                || (args.Outcome.Exception is HttpRequestException)                              // сетевые ошибки
+                (args.Outcome.Result is { StatusCode: >= (HttpStatusCode)500 }) // 5xx
+                || (args.Outcome.Result?.StatusCode == HttpStatusCode.TooManyRequests) // 429
+                || (args.Outcome.Exception is HttpRequestException) // сетевые ошибки
                 || (args.Outcome.Exception is TaskCanceledException
-                    && !args.Context.CancellationToken.IsCancellationRequested))                // таймаут
+                    && !args.Context.CancellationToken.IsCancellationRequested)) // таймаут
         });
 
         cfg.AddCircuitBreaker(new CircuitBreakerStrategyOptions<HttpResponseMessage>
         {
-            FailureRatio      = 0.5,                         // >=50% неуспехов в окне
-            MinimumThroughput = 8,                           // минимальная выборка
-            SamplingDuration  = TimeSpan.FromSeconds(30),    // окно наблюдения
-            BreakDuration     = TimeSpan.FromSeconds(15)     // пауза до "пробного" запроса
+            FailureRatio = 0.5, // >=50% неуспехов в окне
+            MinimumThroughput = 8, // минимальная выборка
+            SamplingDuration = TimeSpan.FromSeconds(30), // окно наблюдения
+            BreakDuration = TimeSpan.FromSeconds(15) // пауза до "пробного" запроса
         });
     }
 }
