@@ -5,6 +5,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Models;
+using Nubrio.Domain.Providers;
+using Nubrio.Infrastructure.Http;
 using Nubrio.Infrastructure.OpenMeteo.Extensions;
 using Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
 using Nubrio.Infrastructure.OpenMeteo.WmoCodes;
@@ -15,12 +17,17 @@ namespace Nubrio.Tests.Infrastructure.IntegrationTests.OpenMeteo.OpenMeteoWeathe
 
 public class OpenMeteoProviderIntegrationTests
 {
-    private static ServiceProvider BuildProvider(HttpMessageHandler handler, string baseUrl, int timeoutSeconds = 5)
+    private const string ForecastBaseUrl = "https://api.test.forecast/";
+    private const string GeocodeBaseUrl = "https://api.test.geocode/";
+    
+    private static ServiceProvider BuildProvider(HttpMessageHandler handler, string forecastBaseUri,
+        string? geocodingBaseUri, int timeoutSeconds = 5)
     {
         var cfg = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["WeatherProviders:OpenMeteo:BaseUrl"] = baseUrl,
+                ["WeatherProviders:OpenMeteo:ForecastBaseUrl"] = forecastBaseUri,
+                ["WeatherProviders:OpenMeteo:GeocodingBaseUrl"] = geocodingBaseUri,
                 ["WeatherProviders:OpenMeteo:TimeoutSeconds"] = timeoutSeconds.ToString()
             })
             .Build();
@@ -35,7 +42,8 @@ public class OpenMeteoProviderIntegrationTests
         // Провайдер + клиент
         services.AddOpenMeteo(cfg);
 
-        services.AddHttpClient(PipelineName).ConfigurePrimaryHttpMessageHandler(() => handler);
+        services.AddHttpClient<IForecastClient, OpenMeteoForecastClient>()
+            .ConfigurePrimaryHttpMessageHandler(() => handler);
         
         return services.BuildServiceProvider();
     }
@@ -46,7 +54,7 @@ public class OpenMeteoProviderIntegrationTests
     {
         // Arrange
         var handler = new StubHttpMessageHandler((_, __) => Json200(validJson));
-        var sp = BuildProvider(handler, "https://api.test/");
+        var sp = BuildProvider(handler, ForecastBaseUrl, GeocodeBaseUrl);
         var provider = sp.GetRequiredService<IWeatherProvider>();
         
         var location = new Location(
@@ -70,7 +78,7 @@ public class OpenMeteoProviderIntegrationTests
             call < 3 ? new  HttpResponseMessage(HttpStatusCode.InternalServerError)
                 : Json200(validJson));
         
-        var sp = BuildProvider(handler, "https://api.test/");
+        var sp = BuildProvider(handler, ForecastBaseUrl, GeocodeBaseUrl);
         var provider = sp.GetRequiredService<IWeatherProvider>();
         
         var location = new Location(
@@ -93,7 +101,7 @@ public class OpenMeteoProviderIntegrationTests
         var badJson = validJson.Replace("\"°C\"", "\"°F\"");
         
         var handler = new StubHttpMessageHandler((_, __) => Json200(badJson));
-        var sp = BuildProvider(handler, "https://api.test/");
+        var sp = BuildProvider(handler, ForecastBaseUrl, GeocodeBaseUrl);
         var provider = sp.GetRequiredService<IWeatherProvider>();
         
         var location = new Location(
@@ -112,7 +120,6 @@ public class OpenMeteoProviderIntegrationTests
     
     
     // ------------------------------------------------------------------------------------------------------------- //
-    private const string PipelineName = "openmeteo";
     
     private static HttpResponseMessage Json200(string json) =>
         new(HttpStatusCode.OK)
