@@ -37,4 +37,4 @@ public class Location
     public string TimeZoneIana { get; }
 }
 
-public sealed record ExternalLocationId(string Provider, string Id);
+public sealed record ExternalLocationId(string Provider, int Id);
