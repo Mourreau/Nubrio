@@ -1,14 +1,22 @@
 using System.Globalization;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using FluentResults;
 using Nubrio.Infrastructure.OpenMeteo.OpenMeteoGeocoding.DTOs;
 using Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
+using Nubrio.Infrastructure.Options;
 
 namespace Nubrio.Infrastructure.Http.GeocodingClient;
 
 internal sealed class OpenMeteoGeocodingClient(HttpClient httpClient) : IGeocodingClient
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+
     public async Task<Result<OpenMeteoGeocodingResponse>> GeocodeAsync(
         string city, int count, string language, CancellationToken ct)
     {
@@ -28,36 +36,43 @@ internal sealed class OpenMeteoGeocodingClient(HttpClient httpClient) : IGeocodi
 
             if (!response.IsSuccessStatusCode)
                 return Result.Fail(new Error(
-                        $"Open-Meteo responded {response.StatusCode} for {response.RequestMessage!.RequestUri}")
+                        $"Open-Meteo responded {response.StatusCode} for {request.RequestUri}")
                     .WithMetadata("Code", response.StatusCode == HttpStatusCode.TooManyRequests
                         ? OpenMeteoErrorCodes.TooManyRequests
-                        : OpenMeteoErrorCodes.Http5xx));
+                        : OpenMeteoErrorCodes.Http5xx)
+                    .WithMetadata("Uri", request.RequestUri!.ToString())
+                    .WithMetadata("Provider", OpenMeteoProviderInfo.OpenMeteoGeocoding));
 
             await using var s = await response.Content.ReadAsStreamAsync(ct);
 
-            var options = new JsonSerializerOptions();
-            options.PropertyNameCaseInsensitive = true;
-
-            var dto = await JsonSerializer.DeserializeAsync<OpenMeteoGeocodingResponse>(s, options, ct);
+            var dto = await JsonSerializer.DeserializeAsync<OpenMeteoGeocodingResponse>(s, JsonOptions, ct);
             if (dto is null)
                 return Result.Fail(new Error("Deserialization returned null")
-                    .WithMetadata("Code", OpenMeteoErrorCodes.Deserialization));
+                    .WithMetadata("Code", OpenMeteoErrorCodes.Deserialization)
+                    .WithMetadata("Uri", request.RequestUri!.ToString())
+                    .WithMetadata("Provider", OpenMeteoProviderInfo.OpenMeteoGeocoding));
 
             return Result.Ok(dto);
         }
         catch (TaskCanceledException) when (!ct.IsCancellationRequested)
         {
-            return Result.Fail(new Error("Timeout").WithMetadata("Code", OpenMeteoErrorCodes.Timeout));
+            return Result.Fail(new Error("Timeout").WithMetadata("Code", OpenMeteoErrorCodes.Timeout)
+                .WithMetadata("Uri", request.RequestUri!.ToString())
+                .WithMetadata("Provider", OpenMeteoProviderInfo.OpenMeteoGeocoding));
         }
         catch (HttpRequestException ex)
         {
             return Result.Fail(new Error("Network error").CausedBy(ex)
-                .WithMetadata("Code", OpenMeteoErrorCodes.NetworkError));
+                .WithMetadata("Code", OpenMeteoErrorCodes.NetworkError)
+                .WithMetadata("Uri", request.RequestUri!.ToString())
+                .WithMetadata("Provider", OpenMeteoProviderInfo.OpenMeteoGeocoding));
         }
         catch (JsonException ex)
         {
             return Result.Fail(new Error("Deserialization failed").CausedBy(ex)
-                .WithMetadata("Code", OpenMeteoErrorCodes.Deserialization));
+                .WithMetadata("Code", OpenMeteoErrorCodes.Deserialization)
+                .WithMetadata("Uri", request.RequestUri!.ToString())
+                .WithMetadata("Provider", OpenMeteoProviderInfo.OpenMeteoGeocoding));
         }
     }
 }

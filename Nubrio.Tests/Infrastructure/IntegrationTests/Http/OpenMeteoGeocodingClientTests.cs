@@ -7,7 +7,6 @@ namespace Nubrio.Tests.Infrastructure.IntegrationTests.Http;
 
 public class OpenMeteoGeocodingClientTests
 {
-
     [Fact]
     public async Task GeocodeAsync_ValidJson_ReturnsOk()
     {
@@ -25,7 +24,7 @@ public class OpenMeteoGeocodingClientTests
         using var reader = new StreamReader(stream);
         var json = reader.ReadToEnd();
 
-        var handler = new StubHttpMessageHandler((req,_) =>
+        var handler = new StubHttpMessageHandler((req, _) =>
         {
             req.RequestUri!.PathAndQuery.Should().StartWith("/v1/search?");
             req.RequestUri.Query.Should().Contain("count=5");
@@ -39,23 +38,23 @@ public class OpenMeteoGeocodingClientTests
             };
             return responseMessage;
         });
-        
-        var client = new HttpClient(handler) {BaseAddress = new Uri("https://geocoding-api.open-meteo.com/")};
+
+        var client = new HttpClient(handler) { BaseAddress = new Uri("https://geocoding-api.open-meteo.com/") };
 
         var geoClient = new OpenMeteoGeocodingClient(client);
 
         var result = await geoClient.GeocodeAsync("Berlin", 5, "en", CancellationToken.None);
-        
+
         result.IsSuccess.Should().BeTrue();
         result.Value.Results.Should().NotBeNull().And.HaveCountGreaterThan(0);
 
         var dto = result.Value.Results[0];
-        
+
         dto.Name.Should().Be("Berlin");
         dto.Id.Should().Be(2950159);
         handler.Calls.Should().Be(1);
     }
-    
+
     [Fact]
     public async Task GeocodeAsync_InvalidJson_ReturnsDeserializationError()
     {
@@ -72,7 +71,7 @@ public class OpenMeteoGeocodingClientTests
         res.IsFailed.Should().BeTrue();
         res.Errors.Should().Contain(e => (string)e.Metadata["Code"] == OpenMeteoErrorCodes.Deserialization);
     }
-    
+
     [Theory]
     [InlineData(HttpStatusCode.InternalServerError, OpenMeteoErrorCodes.Http5xx)]
     [InlineData((HttpStatusCode)429, OpenMeteoErrorCodes.TooManyRequests)]
@@ -80,14 +79,14 @@ public class OpenMeteoGeocodingClientTests
     {
         var handler = new StubHttpMessageHandler((_, _) => new HttpResponseMessage(code));
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://geocoding-api.open-meteo.com/") };
-        var sut = new OpenMeteoGeocodingClient(client);
+        var geoClient = new OpenMeteoGeocodingClient(client);
 
-        var res = await sut.GeocodeAsync("City", 1, "en", CancellationToken.None);
+        var res = await geoClient.GeocodeAsync("City", 1, "en", CancellationToken.None);
 
         res.IsFailed.Should().BeTrue();
         res.Errors.Should().Contain(e => (string)e.Metadata["Code"] == expected);
     }
-    
+
     internal sealed class ThrowingHandler : DelegatingHandler
     {
         private readonly Func<Exception> _throw;
@@ -109,7 +108,7 @@ public class OpenMeteoGeocodingClientTests
         res.IsFailed.Should().BeTrue();
         res.Errors.Should().Contain(e => (string)e.Metadata["Code"] == OpenMeteoErrorCodes.Timeout);
     }
-    
+
     [Fact]
     public async Task GeocodeAsync_NetworkError_ReturnsNetworkErrorCode()
     {
@@ -122,7 +121,7 @@ public class OpenMeteoGeocodingClientTests
         res.IsFailed.Should().BeTrue();
         res.Errors.Should().Contain(e => (string)e.Metadata["Code"] == OpenMeteoErrorCodes.NetworkError);
     }
-    
+
     [Fact]
     public async Task GeocodeAsync_EncodesCityProperly()
     {
