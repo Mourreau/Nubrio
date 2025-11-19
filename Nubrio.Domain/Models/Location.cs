@@ -2,7 +2,12 @@ namespace Nubrio.Domain.Models;
 
 public class Location
 {
-    public Location(Guid locationId, string name, Coordinates coordinates, string timeZoneIana)
+    public Location(
+        Guid locationId,
+        string name, 
+        Coordinates coordinates, 
+        string timeZoneIana, 
+        ExternalLocationId? externalLocationId = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -22,9 +27,14 @@ public class Location
                           throw new ArgumentNullException(
                               nameof(coordinates), $"'{nameof(coordinates)}' cannot be null or whitespace.");
         TimeZoneIana = timeZoneIana;
+
+        ExternalLocationId = externalLocationId;
     }
     public Guid LocationId { get; }
+    public ExternalLocationId? ExternalLocationId { get; }
     public string Name { get; }
     public Coordinates Coordinates { get; } 
     public string TimeZoneIana { get; }
 }
+
+public sealed record ExternalLocationId(string Provider, int Id);

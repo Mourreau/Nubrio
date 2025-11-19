@@ -2,30 +2,32 @@ using FluentResults;
 using Nubrio.Application.DTOs.CurrentForecast;
 using Nubrio.Application.DTOs.DailyForecast;
 using Nubrio.Application.Interfaces;
-using Nubrio.Domain.Models;
 
 namespace Nubrio.Application.Services;
 
 public class WeatherForecastService : IWeatherForecastService
 {
     private readonly IWeatherProvider _weatherProvider;
-    private readonly IGeocodingService _geocodingService;
+    private readonly IGeocodingProvider _geocodingProvider;
     private readonly IClock _clock;
     private readonly IConditionStringMapper _conditionStringMapper;
     private readonly ITimeZoneResolver _timeZoneResolver;
+    private readonly ILanguageResolver _languageResolver;
 
     public WeatherForecastService(
         IWeatherProvider weatherProvider,
-        IGeocodingService geocodingService,
+        IGeocodingProvider geocodingProvider,
         IClock clock,
-        IConditionStringMapper conditionStringMapper, 
-        ITimeZoneResolver timeZoneResolver)
+        IConditionStringMapper conditionStringMapper,
+        ITimeZoneResolver timeZoneResolver,
+        ILanguageResolver languageResolver)
     {
         _weatherProvider = weatherProvider;
-        _geocodingService = geocodingService;
+        _geocodingProvider = geocodingProvider;
         _clock = clock;
         _conditionStringMapper = conditionStringMapper;
         _timeZoneResolver = timeZoneResolver;
+        _languageResolver = languageResolver;
     }
 
     public async Task<Result<CurrentForecastDto>> GetCurrentForecastAsync(string city,
@@ -33,10 +35,13 @@ public class WeatherForecastService : IWeatherForecastService
     {
         // 0. Проверка входных данных
         if (string.IsNullOrWhiteSpace(city))
-            return Result.Fail("City must not be empty or whitespace");
+            return Result.Fail("City cannot be null or whitespace");
+
+        // 0.5. Проверка на язык
+        var language = _languageResolver.Resolve(city);
 
         // 1. Геокодинг
-        var geocodingResult = await _geocodingService.ResolveAsync(city, cancellationToken);
+        var geocodingResult = await _geocodingProvider.ResolveAsync(city, language, cancellationToken);
 
         if (!geocodingResult.IsSuccess)
             return Result.Fail(geocodingResult.Errors);
@@ -46,20 +51,20 @@ public class WeatherForecastService : IWeatherForecastService
 
         if (providerResult.IsFailed)
             return Result.Fail(providerResult.Errors);
-        
+
         // 3. Получение локального часового пояса
-        var timeZoneResolveResult = _timeZoneResolver.GetTimeZoneInfo(geocodingResult.Value.TimeZoneIana);
+        var timeZoneResolveResult = _timeZoneResolver.GetTimeZoneInfoById(geocodingResult.Value.TimeZoneIana);
 
         if (timeZoneResolveResult.IsFailed)
             return Result.Fail(timeZoneResolveResult.Errors);
-        
-        
+
+
         var localDateObserved = TimeZoneInfo.ConvertTime(
-            providerResult.Value.ObservedAt,  timeZoneResolveResult.Value);
-        
+            providerResult.Value.ObservedAt, timeZoneResolveResult.Value);
+
         var localFetched = TimeZoneInfo.ConvertTime(
             _clock.UtcNow, timeZoneResolveResult.Value);
-        
+
         // 4. Перевод в DTO
         var result = new CurrentForecastDto
         {

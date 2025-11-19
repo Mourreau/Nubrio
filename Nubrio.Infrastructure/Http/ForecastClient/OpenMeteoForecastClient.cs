@@ -6,12 +6,10 @@ using Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast;
 using Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast.MeanForecast;
 using Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
 
-namespace Nubrio.Infrastructure.Http;
+namespace Nubrio.Infrastructure.Http.ForecastClient;
 
-internal sealed class OpenMeteoClient(IHttpClientFactory factory) : IOpenMeteoClient
+internal sealed class OpenMeteoForecastClient(HttpClient httpClient) : IForecastClient
 {
-    private readonly HttpClient _httpClient = factory.CreateClient("openmeteo");
-
     public async Task<Result<OpenMeteoDailyResponseDto>> GetOpenMeteoDailyAsync(
         double latitude,
         double longitude,
@@ -27,19 +25,21 @@ internal sealed class OpenMeteoClient(IHttpClientFactory factory) : IOpenMeteoCl
         DateOnly date,
         CancellationToken ct)
     {
-        var path = string.Create(CultureInfo.InvariantCulture, 
-            $"v1/forecast?latitude={latitude}" + 
+        var path = string.Create(CultureInfo.InvariantCulture,
+            $"v1/forecast?latitude={latitude}" +
             $"&longitude={longitude}" +
             $"&daily=temperature_2m_mean,weather_code" +
             $"&timezone=auto&" +
             $"start_date={date:yyyy-MM-dd}&end_date={date:yyyy-MM-dd}");
+        var request = new HttpRequestMessage(HttpMethod.Get, new Uri(httpClient.BaseAddress!, path));
+
         try
         {
-            using var response = await _httpClient.GetAsync(path, ct);
+            using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
 
             if (!response.IsSuccessStatusCode)
                 return Result.Fail(new Error(
-                        $"Cannot get the required path: {path}. Request has ended with status code: {response.StatusCode}")
+                        $"Open-Meteo responded {response.StatusCode} for {response.RequestMessage!.RequestUri}")
                     .WithMetadata("Code", response.StatusCode == HttpStatusCode.TooManyRequests
                         ? OpenMeteoErrorCodes.TooManyRequests
                         : OpenMeteoErrorCodes.Http5xx));
@@ -53,7 +53,7 @@ internal sealed class OpenMeteoClient(IHttpClientFactory factory) : IOpenMeteoCl
             if (dto is null)
                 return Result.Fail(new Error("Deserialization returned null")
                     .WithMetadata("Code", OpenMeteoErrorCodes.Deserialization));
-            
+
             return Result.Ok(dto);
         }
         catch (TaskCanceledException) when (!ct.IsCancellationRequested)

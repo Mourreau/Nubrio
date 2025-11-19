@@ -8,7 +8,7 @@ public class TimeZoneResolver : ITimeZoneResolver
 {
     private static readonly ConcurrentDictionary<string, TimeZoneInfo> ZoneCache = new();
     
-    public Result<TimeZoneInfo> GetTimeZoneInfo(string timeZoneId)
+    public Result<TimeZoneInfo> GetTimeZoneInfoById(string timeZoneId)
     {
         
         if (string.IsNullOrWhiteSpace(timeZoneId))
