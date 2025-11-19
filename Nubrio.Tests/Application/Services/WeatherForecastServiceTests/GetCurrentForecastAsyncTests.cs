@@ -140,7 +140,7 @@ public class GetCurrentForecastAsyncTests
 
         // Assert
         result.IsFailed.Should().BeTrue();
-        result.Errors.First().Message.Should().Be("City must not be empty or whitespace");
+        result.Errors.First().Message.Should().Be("City cannot be null or whitespace");
 
         _geocodingServiceMock.Verify(geocode =>
             geocode.ResolveAsync(emptyCity, "en", It.IsAny<CancellationToken>()), Times.Never);

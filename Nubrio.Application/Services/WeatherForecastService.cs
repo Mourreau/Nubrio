@@ -18,7 +18,7 @@ public class WeatherForecastService : IWeatherForecastService
         IWeatherProvider weatherProvider,
         IGeocodingProvider geocodingProvider,
         IClock clock,
-        IConditionStringMapper conditionStringMapper, 
+        IConditionStringMapper conditionStringMapper,
         ITimeZoneResolver timeZoneResolver,
         ILanguageResolver languageResolver)
     {
@@ -35,8 +35,8 @@ public class WeatherForecastService : IWeatherForecastService
     {
         // 0. Проверка входных данных
         if (string.IsNullOrWhiteSpace(city))
-            return Result.Fail("City must not be empty or whitespace");
-        
+            return Result.Fail("City cannot be null or whitespace");
+
         // 0.5. Проверка на язык
         var language = _languageResolver.Resolve(city);
 
@@ -51,20 +51,20 @@ public class WeatherForecastService : IWeatherForecastService
 
         if (providerResult.IsFailed)
             return Result.Fail(providerResult.Errors);
-        
+
         // 3. Получение локального часового пояса
         var timeZoneResolveResult = _timeZoneResolver.GetTimeZoneInfoById(geocodingResult.Value.TimeZoneIana);
 
         if (timeZoneResolveResult.IsFailed)
             return Result.Fail(timeZoneResolveResult.Errors);
-        
-        
+
+
         var localDateObserved = TimeZoneInfo.ConvertTime(
-            providerResult.Value.ObservedAt,  timeZoneResolveResult.Value);
-        
+            providerResult.Value.ObservedAt, timeZoneResolveResult.Value);
+
         var localFetched = TimeZoneInfo.ConvertTime(
             _clock.UtcNow, timeZoneResolveResult.Value);
-        
+
         // 4. Перевод в DTO
         var result = new CurrentForecastDto
         {

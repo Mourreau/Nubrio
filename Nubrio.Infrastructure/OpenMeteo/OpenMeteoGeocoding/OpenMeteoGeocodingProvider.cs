@@ -19,7 +19,7 @@ public class OpenMeteoGeocodingProvider : IGeocodingProvider
     public async Task<Result<Location>> ResolveAsync(string city, string language, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(city))
-            return Result.Fail("City cannot be null or whitespace.");
+            return Result.Fail("City cannot be null or whitespace");
 
         var openMeteoGeoResponse = await _geocodingClient.GeocodeAsync(city, CityCount, language, cancellationToken);
 
@@ -28,7 +28,7 @@ public class OpenMeteoGeocodingProvider : IGeocodingProvider
 
         var responseDto = openMeteoGeoResponse.Value;
 
-        if (responseDto is null || responseDto.Results.Count == 0)
+        if (responseDto.Results is null or { Count: 0 })
             return Result.Fail($"No location found for city '{city}'.");
 
         var resultDto = responseDto.Results[0];
