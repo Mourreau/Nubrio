@@ -71,8 +71,11 @@ internal sealed class OpenMeteoGeocodingClient(HttpClient httpClient) : IGeocodi
         {
             return Result.Fail(new Error("Deserialization failed").CausedBy(ex)
                 .WithMetadata("Code", OpenMeteoErrorCodes.Deserialization)
+                .WithMetadata("Provider", OpenMeteoProviderInfo.OpenMeteoGeocoding)
                 .WithMetadata("Uri", request.RequestUri!.ToString())
-                .WithMetadata("Provider", OpenMeteoProviderInfo.OpenMeteoGeocoding));
+                .WithMetadata("ExceptionMessage", ex.Message)
+                .WithMetadata("ExceptionPath", ex.Path)
+            );
         }
     }
 }
