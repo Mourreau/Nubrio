@@ -38,7 +38,7 @@ public class WeatherController : ControllerBase
     /// </summary>
     /// <remarks>
     /// Пример запроса:
-    /// GET /api/weather/daily/Berlin?date=2025-10-20
+    /// GET /api/weather/Berlin?date=2025-10-20
     ///
     /// Ограничения:
     /// - <c>city</c> — обязательный параметр, кириллица или латиница (без транслита)
