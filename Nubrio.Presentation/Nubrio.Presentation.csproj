@@ -4,17 +4,20 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn> <!-- чтобы не ругался на "нет XML-комментариев" -->
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="FluentResults" Version="4.0.0" />
+        <PackageReference Include="FluentResults" Version="4.0.0"/>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.18"/>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Nubrio.Application\Nubrio.Application.csproj" />
-      <ProjectReference Include="..\Nubrio.Infrastructure\Nubrio.Infrastructure.csproj" />
+        <ProjectReference Include="..\Nubrio.Application\Nubrio.Application.csproj"/>
+        <ProjectReference Include="..\Nubrio.Infrastructure\Nubrio.Infrastructure.csproj"/>
     </ItemGroup>
 
 </Project>
