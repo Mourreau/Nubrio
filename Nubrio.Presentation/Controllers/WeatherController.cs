@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Nubrio.Application.Interfaces;
+using Nubrio.Application.Validators.Errors;
 using Nubrio.Presentation.DTOs.Response;
 using Nubrio.Presentation.Mappers;
 
@@ -88,7 +89,7 @@ public class WeatherController : ControllerBase
             var firstError = dailyForecast.Errors.First();
             var code = firstError.Metadata?["Code"] as string;
 
-            if (code == "ForecastService.EmptyCity")
+            if (code == ForecastServiceErrorCodes.EmptyCity)
                 return BadRequest(firstError.Message);
 
             return Problem(
