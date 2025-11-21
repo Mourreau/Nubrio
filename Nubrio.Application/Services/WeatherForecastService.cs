@@ -43,7 +43,7 @@ public class WeatherForecastService : IWeatherForecastService
         // 1. Геокодинг
         var geocodingResult = await _geocodingProvider.ResolveAsync(city, language, cancellationToken);
 
-        if (!geocodingResult.IsSuccess)
+        if (geocodingResult.IsFailed)
             return Result.Fail(geocodingResult.Errors);
 
         // 2. Текущая погода
