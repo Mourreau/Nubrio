@@ -51,7 +51,7 @@ public class WeatherController : ControllerBase
     /// Название города, как его вводит пользователь. Примеры: "Москва", "Berlin".
     /// </param>
     /// <param name="date">
-    /// Дата, за которую нужен прогноз, в формате <c>yyyy-MM-dd</c>.
+    /// Дата, на которую нужен прогноз, в формате <c>yyyy-MM-dd</c>.
     /// </param>
     /// <param name="cancellationToken">
     /// Токен отмены HTTP-запроса. Используется для досрочного завершения операции.
@@ -62,6 +62,7 @@ public class WeatherController : ControllerBase
     /// <response code="400">
     /// Некорректный запрос — пустой <c>city</c> или дата дальше, чем на 3 месяца вперёд.
     /// </response>
+    /// <response code="404">Некорректный запрос - во время геокодинга для <c>city</c> не найдена локация</response>
     /// <response code="500">
     /// Внутренняя ошибка сервера или ошибка внешнего провайдера погоды.
     /// </response>
