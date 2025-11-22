@@ -78,7 +78,7 @@ public class WeatherController : ControllerBase
             return BadRequest("City cannot be null or whitespace");
 
         var forecastDateOffset =
-            DateOnly.FromDateTime(DateTime.UtcNow)
+            DateOnly.FromDateTime(_clock.UtcNow.UtcDateTime)
                 .AddMonths(3); // Прогноз погоды может быть сделан до 3х месяцев вперед
 
         if (date > forecastDateOffset) return BadRequest($"Date must not be later than 3 months: {forecastDateOffset}");
