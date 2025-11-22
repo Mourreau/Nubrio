@@ -14,12 +14,17 @@ public class GetDailyForecastByCityTests
 {
     private readonly Mock<IWeatherForecastService> _weatherForecastServiceMock;
     private readonly WeatherController _controller;
+    private readonly Mock<IClock> _clockMock;
 
     public GetDailyForecastByCityTests()
     {
         _weatherForecastServiceMock = new Mock<IWeatherForecastService>();
+        _clockMock = new Mock<IClock>();
 
-        _controller = new WeatherController(_weatherForecastServiceMock.Object);
+        _clockMock.Setup(x => x.UtcNow)
+            .Returns(new DateTimeOffset(2025, 11, 20, 0, 0, 0, TimeSpan.Zero));
+
+        _controller = new WeatherController(_weatherForecastServiceMock.Object, _clockMock.Object);
     }
 
 
@@ -92,9 +97,13 @@ public class GetDailyForecastByCityTests
     {
         // Arrange 
         const string city = "Valid City";
-        var farDateOnly = DateOnly.FromDateTime(DateTime.Now).AddMonths(4); // Передаваемая дата в контроллер
+
+        var fixedNow = _clockMock.Object.UtcNow.Date; // Дата из мока IClock
+
+        var farDateOnly = DateOnly.FromDateTime(fixedNow).AddMonths(4); // Передаваемая дата в контроллер
         var farDate =
-            DateOnly.FromDateTime(DateTime.UtcNow).AddMonths(3); // Самая крайняя дата на которую может быть дан прогноз
+            DateOnly.FromDateTime(fixedNow).AddMonths(3); // Самая крайняя дата на которую может быть дан прогноз
+
 
         // Act
         var actionResult = await _controller.GetDailyForecastByCity(city, farDateOnly, CancellationToken.None);
