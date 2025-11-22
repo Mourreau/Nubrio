@@ -11,11 +11,13 @@ namespace Nubrio.Presentation.Controllers;
 public class WeatherController : ControllerBase
 {
     private readonly IWeatherForecastService _weatherForecastService;
+    private readonly IClock _clock;
 
 
-    public WeatherController(IWeatherForecastService weatherForecastService)
+    public WeatherController(IWeatherForecastService weatherForecastService, IClock clock)
     {
         _weatherForecastService = weatherForecastService;
+        _clock = clock;
     }
 
     [HttpGet("{city}/current")]
@@ -38,7 +40,7 @@ public class WeatherController : ControllerBase
     /// </summary>
     /// <remarks>
     /// Пример запроса:
-    /// GET /api/weather/Berlin?date=2025-10-20
+    /// <c>GET /api/weather/Berlin?date=2025-10-20</c>
     ///
     /// Ограничения:
     /// - <c>city</c> — обязательный параметр, кириллица или латиница (без транслита)
