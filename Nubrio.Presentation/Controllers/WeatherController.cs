@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Nubrio.Application.Interfaces;
 using Nubrio.Application.Validators.Errors;
+using Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
 using Nubrio.Presentation.DTOs.Response;
 using Nubrio.Presentation.Mappers;
 
@@ -79,7 +80,7 @@ public class WeatherController : ControllerBase
 
         var forecastDateOffset =
             DateOnly.FromDateTime(_clock.UtcNow.UtcDateTime)
-                .AddMonths(3); // Прогноз погоды может быть сделан до 3х месяцев вперед
+                .AddMonths(3); // Прогноз погоды может быть сделан до 3-х месяцев вперед
 
         if (date > forecastDateOffset) return BadRequest($"Date must not be later than 3 months: {forecastDateOffset}");
 
@@ -93,6 +94,9 @@ public class WeatherController : ControllerBase
 
             if (code == ForecastServiceErrorCodes.EmptyCity)
                 return BadRequest(firstError.Message);
+            
+            if (code == OpenMeteoErrorCodes.GeocodingNotFound)
+                return NotFound(firstError.Message);
 
             return Problem(
                 detail: firstError.Message,
