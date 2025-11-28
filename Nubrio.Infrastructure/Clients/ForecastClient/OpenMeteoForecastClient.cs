@@ -49,6 +49,7 @@ internal sealed class OpenMeteoForecastClient : ExternalApiClientBase, IForecast
         var request = new HttpRequestMessage(HttpMethod.Get, new Uri(HttpClient.BaseAddress!, path));
 
         var result = await SendAndDeserializeAsync<OpenMeteoDailyMeanResponseDto>(request, ct);
+        if (result.IsFailed) return Result.Fail(result.Errors);
 
         var dto = result.Value;
 
