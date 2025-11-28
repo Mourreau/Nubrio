@@ -4,7 +4,7 @@ using Nubrio.Domain.Models.Daily;
 
 namespace Nubrio.Application.Interfaces;
 
-public interface IWeatherProvider
+public interface IForecastProvider
 {
     Task<Result<DailyForecastMean>> GetDailyForecastMeanAsync(Location location, DateOnly date,
         CancellationToken cancellationToken);

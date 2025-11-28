@@ -8,7 +8,7 @@ namespace Nubrio.Application.Services;
 
 public class WeatherForecastService : IWeatherForecastService
 {
-    private readonly IWeatherProvider _weatherProvider;
+    private readonly IForecastProvider _forecastProvider;
     private readonly IGeocodingProvider _geocodingProvider;
     private readonly IClock _clock;
     private readonly IConditionStringMapper _conditionStringMapper;
@@ -16,14 +16,14 @@ public class WeatherForecastService : IWeatherForecastService
     private readonly ILanguageResolver _languageResolver;
 
     public WeatherForecastService(
-        IWeatherProvider weatherProvider,
+        IForecastProvider forecastProvider,
         IGeocodingProvider geocodingProvider,
         IClock clock,
         IConditionStringMapper conditionStringMapper,
         ITimeZoneResolver timeZoneResolver,
         ILanguageResolver languageResolver)
     {
-        _weatherProvider = weatherProvider;
+        _forecastProvider = forecastProvider;
         _geocodingProvider = geocodingProvider;
         _clock = clock;
         _conditionStringMapper = conditionStringMapper;
@@ -48,7 +48,7 @@ public class WeatherForecastService : IWeatherForecastService
             return Result.Fail(geocodingResult.Errors);
 
         // 2. Текущая погода
-        var providerResult = await _weatherProvider.GetCurrentForecastAsync(geocodingResult.Value, cancellationToken);
+        var providerResult = await _forecastProvider.GetCurrentForecastAsync(geocodingResult.Value, cancellationToken);
 
         if (providerResult.IsFailed)
             return Result.Fail(providerResult.Errors);
@@ -96,10 +96,23 @@ public class WeatherForecastService : IWeatherForecastService
         var geocodingResult = await _geocodingProvider.ResolveAsync(city, language, cancellationToken);
 
         if (geocodingResult.IsFailed)
-            return Result.Fail(geocodingResult.Errors);
+        {
+            // TODO: Реализовать обработку ошибки когда геокодинг не нашел город.
+            
+            // var firstError = geocodingResult.Errors[0];
+            // var code = firstError.Metadata?["ServiceCode"] as string;
+            //
+            // if (code == ForecastServiceErrorCodes.GeocodingNotFound)
+            // {
+            //     return Result.Fail(new Error(firstError.Message)
+            //         .WithMetadata("Code", Fore));
+            // }
+            
+            return Result.Fail(geocodingResult.Errors); // Все остальные ошибки отдаем как internal
+        }
 
         // 2. Погода по дате
-        var providerResult = await _weatherProvider.GetDailyForecastMeanAsync(
+        var providerResult = await _forecastProvider.GetDailyForecastMeanAsync(
             geocodingResult.Value, date, cancellationToken);
 
         if (providerResult.IsFailed)

@@ -46,7 +46,7 @@ builder.Services.AddSingleton<ILanguageResolver, LanguageResolver>();
 var useMock = builder.Configuration.GetValue<bool>("UseMockProviders");
 if (useMock)
 {
-    builder.Services.AddScoped<IWeatherProvider, MockWeatherProvider>();
+    builder.Services.AddScoped<IForecastProvider, MockForecastProvider>();
     builder.Services.AddScoped<IGeocodingProvider, MockGeocodingProvider>();
 }
 else
