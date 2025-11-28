@@ -44,9 +44,7 @@ internal abstract class ExternalApiClientBase<TErrorCodes>
 
             if (!response.IsSuccessStatusCode)
                 return BuildHttpError(response,
-                    request.RequestUri!,
-                    ErrorCodes.TooManyRequests(),
-                    ErrorCodes.InternalError());
+                    request.RequestUri!);
 
             await using var s = await response.Content.ReadAsStreamAsync(ct);
 
@@ -91,21 +89,25 @@ internal abstract class ExternalApiClientBase<TErrorCodes>
 
 
     private Error BuildHttpError(HttpResponseMessage response,
-        Uri requestUri,
-        string tooManyRequestsCode,
-        string http5xxCode)
+        Uri requestUri)
     {
-        var code = response.StatusCode == HttpStatusCode.TooManyRequests
-            ? tooManyRequestsCode
-            : http5xxCode;
+
+        var errorCode = response.StatusCode switch
+        {
+            HttpStatusCode.TooManyRequests => ErrorCodes.TooManyRequests(),
+            >= HttpStatusCode.InternalServerError => ErrorCodes.InternalError(),
+            >= HttpStatusCode.BadRequest and < HttpStatusCode.InternalServerError => ErrorCodes.ExternalClientError(),
+            _ => ErrorCodes.InternalError()
+        };
 
         return new Error(
                 $"External provider '{Info.Name}' responded {response.StatusCode} for {requestUri}")
-            .WithProviderContext(Info,
+            .WithProviderContext(
+                Info,
                 requestUri,
                 statusCode: (int)response.StatusCode,
                 providerErrorMessage: response.ReasonPhrase)
-            .WithCode(code);
+            .WithCode(errorCode);
     }
 
     private Error BuildExceptionError(string message, Uri requestUri, string code, Exception ex)
