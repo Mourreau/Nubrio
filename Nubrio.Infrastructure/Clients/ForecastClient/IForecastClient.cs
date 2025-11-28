@@ -1,8 +1,8 @@
 using FluentResults;
-using Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast;
-using Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast.MeanForecast;
+using Nubrio.Infrastructure.Providers.OpenMeteo.DTOs.DailyForecast;
+using Nubrio.Infrastructure.Providers.OpenMeteo.DTOs.DailyForecast.MeanForecast;
 
-namespace Nubrio.Infrastructure.Http.ForecastClient;
+namespace Nubrio.Infrastructure.Clients.ForecastClient;
 
 public interface IForecastClient
 {
