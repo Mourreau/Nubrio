@@ -5,18 +5,18 @@ using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Models;
 using Nubrio.Domain.Models.Daily;
 using Nubrio.Infrastructure.Helpers;
-using Nubrio.Infrastructure.OpenMeteo.DTOs.CurrentForecast;
+using Nubrio.Infrastructure.Providers.OpenMeteo.DTOs.CurrentForecast;
 
-namespace Nubrio.Infrastructure.MockProvider;
+namespace Nubrio.Infrastructure.Providers.MockProvider;
 
-public class MockWeatherProvider : IWeatherProvider
+public class MockForecastProvider : IForecastProvider
 {
     private readonly IWeatherCodeTranslator _weatherCodeTranslator;
 
     private const string _resourceName =
         "Nubrio.Infrastructure.MockProvider.mock_weather_api_current_response.json";
 
-    public MockWeatherProvider(IWeatherCodeTranslator weatherCodeTranslator)
+    public MockForecastProvider(IWeatherCodeTranslator weatherCodeTranslator)
     {
         _weatherCodeTranslator = weatherCodeTranslator;
     }
