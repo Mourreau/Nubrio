@@ -47,7 +47,7 @@ internal sealed class OpenMeteoGeocodingProvider : IGeocodingProvider
             new Coordinates(resultDto.Latitude, resultDto.Longitude),
             resultDto.Timezone,
             new ExternalLocationId(
-                OpenMeteoProviderInfo.OpenMeteoGeocoding,
+                ExternalProviders.OpenMeteo,
                 resultDto.Id
             ));
 
