@@ -14,7 +14,7 @@ public class MockForecastProvider : IForecastProvider
     private readonly IWeatherCodeTranslator _weatherCodeTranslator;
 
     private const string _resourceName =
-        "Nubrio.Infrastructure.MockProvider.mock_weather_api_current_response.json";
+        "Nubrio.Infrastructure.Providers.MockProvider.mock_weather_api_current_response.json";
 
     public MockForecastProvider(IWeatherCodeTranslator weatherCodeTranslator)
     {
