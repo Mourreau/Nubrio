@@ -9,9 +9,8 @@ using Nubrio.Infrastructure.Providers.ProviderBase.ErrorsCodes;
 
 namespace Nubrio.Infrastructure.Clients.ForecastClient;
 
-internal sealed class OpenMeteoForecastClient : ExternalApiClientBase, IForecastClient
+internal sealed class OpenMeteoForecastClient : ExternalApiClientBase<ForecastProviderErrorCodes>, IForecastClient
 {
-    private readonly ForecastProviderErrorCodes _errorCodes;
 
 
     public OpenMeteoForecastClient(HttpClient httpClient, IOptions<ProviderOptions> options)
@@ -22,7 +21,6 @@ internal sealed class OpenMeteoForecastClient : ExternalApiClientBase, IForecast
     private OpenMeteoForecastClient(HttpClient httpClient, ProviderInfo info)
         : base(httpClient, info, new ForecastProviderErrorCodes(info))
     {
-        _errorCodes = (ForecastProviderErrorCodes)ErrorCodes;
     }
 
     public async Task<Result<OpenMeteoDailyResponseDto>> GetOpenMeteoDailyAsync(
@@ -58,7 +56,7 @@ internal sealed class OpenMeteoForecastClient : ExternalApiClientBase, IForecast
             return BuildError(
                 $"No forecast found",
                 request.RequestUri!,
-                _errorCodes.NotFound());
+                ErrorCodes.NotFound());
         }
 
         return Result.Ok(dto);

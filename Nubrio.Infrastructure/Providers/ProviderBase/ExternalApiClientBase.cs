@@ -9,10 +9,11 @@ using Nubrio.Infrastructure.Providers.ProviderBase.ErrorsCodes;
 
 namespace Nubrio.Infrastructure.Providers.ProviderBase;
 
-internal abstract class ExternalApiClientBase
+internal abstract class ExternalApiClientBase<TErrorCodes>
+    where TErrorCodes : ProviderErrorCodes
 {
-    public ProviderInfo Info { get; }
-    protected ProviderErrorCodes ErrorCodes { get; }
+    private ProviderInfo Info { get; }
+    protected TErrorCodes ErrorCodes { get; }
     protected HttpClient HttpClient { get; }
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -25,7 +26,7 @@ internal abstract class ExternalApiClientBase
     protected ExternalApiClientBase(
         HttpClient httpClient,
         ProviderInfo providerInfo,
-        ProviderErrorCodes errorCodes)
+        TErrorCodes errorCodes)
     {
         HttpClient = httpClient;
         Info = providerInfo;
@@ -119,5 +120,4 @@ internal abstract class ExternalApiClientBase
             .WithProviderContext(Info, requestUri)
             .WithCode(code)
             .WithJsonException(ex);
-
 }
