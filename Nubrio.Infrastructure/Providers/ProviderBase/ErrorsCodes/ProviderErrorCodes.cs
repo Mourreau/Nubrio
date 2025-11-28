@@ -26,5 +26,8 @@ public abstract class ProviderErrorCodes
     
     public string Timeout()
     => $"{Info.Service}.Timeout";
+    
+    public string ExternalClientError()
+    => $"{Info.Service}.ExternalClientError";
 
 }
