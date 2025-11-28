@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast;
+namespace Nubrio.Infrastructure.Providers.OpenMeteo.DTOs.DailyForecast;
 
 public class DailyDataDto
 {

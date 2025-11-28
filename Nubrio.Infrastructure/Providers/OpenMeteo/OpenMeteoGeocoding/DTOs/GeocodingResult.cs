@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Nubrio.Infrastructure.OpenMeteo.OpenMeteoGeocoding.DTOs;
+namespace Nubrio.Infrastructure.Providers.OpenMeteo.OpenMeteoGeocoding.DTOs;
 
 /// <summary>
 /// Поля результата геокодинга

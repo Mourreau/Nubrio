@@ -1,8 +1,8 @@
 using System.Globalization;
-using Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast.MeanForecast;
-using Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
+using Nubrio.Infrastructure.Providers.OpenMeteo.DTOs.DailyForecast.MeanForecast;
+using Nubrio.Infrastructure.Providers.OpenMeteo.Validators.Errors;
 
-namespace Nubrio.Infrastructure.OpenMeteo.Validators;
+namespace Nubrio.Infrastructure.Providers.OpenMeteo.Validators;
 
 internal static class OpenMeteoResponseValidator
 {

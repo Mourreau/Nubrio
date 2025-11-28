@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Enums;
 
-namespace Nubrio.Infrastructure.OpenMeteo.WmoCodes;
+namespace Nubrio.Infrastructure.Providers.OpenMeteo.WmoCodes;
 
 public class OpenMeteoWeatherCodeTranslator : IWeatherCodeTranslator
 {

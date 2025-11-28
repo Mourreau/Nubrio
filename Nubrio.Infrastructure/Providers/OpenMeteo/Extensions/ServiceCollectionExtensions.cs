@@ -12,7 +12,7 @@ using Polly;
 using Polly.CircuitBreaker;
 using Polly.Retry;
 
-namespace Nubrio.Infrastructure.OpenMeteo.Extensions;
+namespace Nubrio.Infrastructure.Providers.OpenMeteo.Extensions;
 
 public static class ServiceCollectionExtensions
 {

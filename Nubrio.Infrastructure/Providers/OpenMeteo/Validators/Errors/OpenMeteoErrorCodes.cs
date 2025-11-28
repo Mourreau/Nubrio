@@ -1,4 +1,4 @@
-namespace Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
+namespace Nubrio.Infrastructure.Providers.OpenMeteo.Validators.Errors;
 
 public static class OpenMeteoErrorCodes
 {
@@ -11,3 +11,4 @@ public static class OpenMeteoErrorCodes
     public const string Deserialization    = "OpenMeteo.Deserialization";
     public const string GeocodingNotFound = "OpenMeteo.GeocodingNotFound";
 }
+// TODO: УДАЛИТЬ!!!

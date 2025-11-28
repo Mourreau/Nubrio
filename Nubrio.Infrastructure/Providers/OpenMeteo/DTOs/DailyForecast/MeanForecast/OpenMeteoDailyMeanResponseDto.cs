@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast.MeanForecast;
+namespace Nubrio.Infrastructure.Providers.OpenMeteo.DTOs.DailyForecast.MeanForecast;
 
 public record OpenMeteoDailyMeanResponseDto
 {

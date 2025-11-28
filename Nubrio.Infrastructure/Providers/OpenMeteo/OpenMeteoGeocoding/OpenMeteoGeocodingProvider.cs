@@ -4,7 +4,7 @@ using Nubrio.Domain.Models;
 using Nubrio.Infrastructure.Http.GeocodingClient;
 using Nubrio.Infrastructure.Options;
 
-namespace Nubrio.Infrastructure.OpenMeteo.OpenMeteoGeocoding;
+namespace Nubrio.Infrastructure.Providers.OpenMeteo.OpenMeteoGeocoding;
 
 public class OpenMeteoGeocodingProvider : IGeocodingProvider
 {

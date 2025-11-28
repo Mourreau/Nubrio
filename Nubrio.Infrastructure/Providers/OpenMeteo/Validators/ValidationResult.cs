@@ -1,4 +1,4 @@
-namespace Nubrio.Infrastructure.OpenMeteo.Validators;
+namespace Nubrio.Infrastructure.Providers.OpenMeteo.Validators;
 
 public class ValidationResult(
     string message, 

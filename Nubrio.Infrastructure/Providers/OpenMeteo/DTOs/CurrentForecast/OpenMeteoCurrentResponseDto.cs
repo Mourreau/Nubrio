@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Nubrio.Infrastructure.OpenMeteo.DTOs.CurrentForecast;
+namespace Nubrio.Infrastructure.Providers.OpenMeteo.DTOs.CurrentForecast;
 
 public class OpenMeteoCurrentResponseDto
 {
