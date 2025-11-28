@@ -36,5 +36,3 @@ public class Location
     public Coordinates Coordinates { get; } 
     public string TimeZoneIana { get; }
 }
-
-public sealed record ExternalLocationId(string Provider, int Id);
