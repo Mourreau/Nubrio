@@ -3,11 +3,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Nubrio.Application.Interfaces;
-using Nubrio.Infrastructure.Http.ForecastClient;
-using Nubrio.Infrastructure.Http.GeocodingClient;
-using Nubrio.Infrastructure.OpenMeteo.OpenMeteoForecast;
-using Nubrio.Infrastructure.OpenMeteo.OpenMeteoGeocoding;
+using Nubrio.Infrastructure.Clients.ForecastClient;
+using Nubrio.Infrastructure.Clients.GeocodingClient;
 using Nubrio.Infrastructure.Options;
+using Nubrio.Infrastructure.Providers.OpenMeteo.OpenMeteoForecast;
+using Nubrio.Infrastructure.Providers.OpenMeteo.OpenMeteoGeocoding;
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.Retry;
@@ -25,8 +25,10 @@ public static class ServiceCollectionExtensions
 
         services.AddOptions<OpenMeteoOptions>()
             .Bind(section)
-            .Validate(o => !string.IsNullOrWhiteSpace(o.ForecastBaseUrl), "ForecastBaseUrl is required")
-            .Validate(o => !string.IsNullOrWhiteSpace(o.GeocodingBaseUrl), "GeocodingBaseUrl is required")
+            .Validate(o
+                => !string.IsNullOrWhiteSpace(o.ForecastBaseUrl), "ForecastBaseUrl is required")
+            .Validate(o
+                => !string.IsNullOrWhiteSpace(o.GeocodingBaseUrl), "GeocodingBaseUrl is required")
             .Validate(
                 o => Uri.TryCreate(o.ForecastBaseUrl, UriKind.Absolute, out var u1) && u1.Scheme == Uri.UriSchemeHttps,
                 "ForecastBaseUrl must be absolute https URL")
@@ -44,7 +46,7 @@ public static class ServiceCollectionExtensions
                 client.Timeout = Timeout.InfiniteTimeSpan;
                 client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
             })
-            .AddResilienceHandler(OpenMeteoProviderInfo.OpenMeteoForecast, conf =>
+            .AddResilienceHandler(nameof(OpenMeteoForecastClient), conf =>
                 ConfigureResilience(conf, clientOptions.TimeoutSeconds));
 
         // Geocoding (typed)
@@ -55,11 +57,11 @@ public static class ServiceCollectionExtensions
                 client.Timeout = Timeout.InfiniteTimeSpan;
                 client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
             })
-            .AddResilienceHandler(OpenMeteoProviderInfo.OpenMeteoGeocoding, conf =>
+            .AddResilienceHandler(nameof(OpenMeteoGeocodingClient), conf =>
                 ConfigureResilience(conf, clientOptions.TimeoutSeconds));
 
         services.AddScoped<IGeocodingProvider, OpenMeteoGeocodingProvider>();
-        services.AddScoped<IWeatherProvider, OpenMeteoWeatherProvider>();
+        services.AddScoped<IForecastProvider, OpenMeteoForecastProvider>();
 
         return services;
     }
