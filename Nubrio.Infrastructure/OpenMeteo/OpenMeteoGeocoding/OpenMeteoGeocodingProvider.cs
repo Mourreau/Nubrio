@@ -43,8 +43,7 @@ public class OpenMeteoGeocodingProvider : IGeocodingProvider
             resultDto.Name,
             new Coordinates(resultDto.Latitude, resultDto.Longitude),
             resultDto.Timezone,
-            new
-            (
+            new ExternalLocationId(
                 OpenMeteoProviderInfo.OpenMeteoGeocoding,
                 resultDto.Id
             ));

@@ -8,7 +8,7 @@ public record DailyForecastDto
     
     public required IReadOnlyList<string> Conditions { get; init; } = [];
     
-    public required IReadOnlyList<double> TemperaturesAvg { get; init; } = [];
+    public required IReadOnlyList<double> TemperaturesMean { get; init; } = [];
     
     public required DateTimeOffset FetchedAt{ get; init; }
 }

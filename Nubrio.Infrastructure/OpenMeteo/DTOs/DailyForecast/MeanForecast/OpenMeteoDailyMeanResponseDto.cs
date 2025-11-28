@@ -25,7 +25,7 @@ public record OpenMeteoDailyMeanResponseDto
     public string TimezoneAbbreviation { get; init; }
     
     [JsonPropertyName("elevation")]
-    public int Elevation { get; init; }
+    public double Elevation { get; init; }
     
     // Weather forecast data (mean)
     

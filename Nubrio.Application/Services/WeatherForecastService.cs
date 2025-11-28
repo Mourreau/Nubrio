@@ -2,6 +2,7 @@ using FluentResults;
 using Nubrio.Application.DTOs.CurrentForecast;
 using Nubrio.Application.DTOs.DailyForecast;
 using Nubrio.Application.Interfaces;
+using Nubrio.Application.Validators.Errors;
 
 namespace Nubrio.Application.Services;
 
@@ -43,7 +44,7 @@ public class WeatherForecastService : IWeatherForecastService
         // 1. Геокодинг
         var geocodingResult = await _geocodingProvider.ResolveAsync(city, language, cancellationToken);
 
-        if (!geocodingResult.IsSuccess)
+        if (geocodingResult.IsFailed)
             return Result.Fail(geocodingResult.Errors);
 
         // 2. Текущая погода
@@ -75,13 +76,54 @@ public class WeatherForecastService : IWeatherForecastService
             FetchedAt = localFetched
         };
 
+
         return Result.Ok(result);
     }
 
-    public Task<Result<DailyForecastDto>> GetDailyForecastByDateAsync(string city, DateOnly date,
+    public async Task<Result<DailyForecastDto>> GetDailyForecastByDateAsync(string city, DateOnly date,
         CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        // 0. Проверка входных данных
+        if (string.IsNullOrWhiteSpace(city))
+            return Result.Fail(new Error("City cannot be null or whitespace")
+                .WithMetadata("Code", ForecastServiceErrorCodes.EmptyCity)
+            );
+
+        // 0.5. Проверка на язык
+        var language = _languageResolver.Resolve(city);
+
+        // 1. Геокодинг
+        var geocodingResult = await _geocodingProvider.ResolveAsync(city, language, cancellationToken);
+
+        if (geocodingResult.IsFailed)
+            return Result.Fail(geocodingResult.Errors);
+
+        // 2. Погода по дате
+        var providerResult = await _weatherProvider.GetDailyForecastMeanAsync(
+            geocodingResult.Value, date, cancellationToken);
+
+        if (providerResult.IsFailed)
+            return Result.Fail(providerResult.Errors);
+
+        // 3. Получение локального часового пояса
+        var timeZoneResolveResult = _timeZoneResolver.GetTimeZoneInfoById(geocodingResult.Value.TimeZoneIana);
+
+        if (timeZoneResolveResult.IsFailed)
+            return Result.Fail(timeZoneResolveResult.Errors);
+
+        var localFetched = TimeZoneInfo.ConvertTime(
+            _clock.UtcNow, timeZoneResolveResult.Value);
+
+        var result = new DailyForecastDto
+        {
+            City = geocodingResult.Value.Name,
+            Dates = [date],
+            Conditions = [_conditionStringMapper.From(providerResult.Value.Condition)],
+            FetchedAt = localFetched,
+            TemperaturesMean = [providerResult.Value.TemperatureMean]
+        };
+
+        return Result.Ok(result);
     }
 
     public Task<Result<DailyForecastDto>> GetDailyForecastRangeAsync(string city,

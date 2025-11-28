@@ -5,6 +5,7 @@ using FluentResults;
 using Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast;
 using Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast.MeanForecast;
 using Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
+using Nubrio.Infrastructure.Options;
 
 namespace Nubrio.Infrastructure.Http.ForecastClient;
 
@@ -68,7 +69,15 @@ internal sealed class OpenMeteoForecastClient(HttpClient httpClient) : IForecast
         catch (JsonException ex)
         {
             return Result.Fail(new Error("Deserialization failed").CausedBy(ex)
-                .WithMetadata("Code", OpenMeteoErrorCodes.Deserialization));
+                .WithMetadata("Code", OpenMeteoErrorCodes.Deserialization)
+                .WithMetadata("Provider", Provider)
+                .WithMetadata("Uri", request.RequestUri!.ToString())
+                .WithMetadata("ExceptionMessage", ex.Message)
+                .WithMetadata("ExceptionPath", ex.Path)
+            );
         }
     }
+
+
+    private const string Provider = OpenMeteoProviderInfo.OpenMeteoForecast; // Провайдер погоды
 }

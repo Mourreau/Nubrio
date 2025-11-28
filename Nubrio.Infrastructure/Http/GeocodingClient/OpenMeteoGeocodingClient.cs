@@ -52,6 +52,13 @@ internal sealed class OpenMeteoGeocodingClient(HttpClient httpClient) : IGeocodi
                     .WithMetadata("Uri", request.RequestUri!.ToString())
                     .WithMetadata("Provider", OpenMeteoProviderInfo.OpenMeteoGeocoding));
 
+            if (dto.Results is null || dto.Results.Count == 0)
+            {
+                return Result.Fail(new Error($"No location found for city '{city}'.")
+                    .WithMetadata("Code", OpenMeteoErrorCodes.GeocodingNotFound)
+                    .WithMetadata("Provider", OpenMeteoProviderInfo.OpenMeteoGeocoding));
+            }
+
             return Result.Ok(dto);
         }
         catch (TaskCanceledException) when (!ct.IsCancellationRequested)
@@ -71,8 +78,11 @@ internal sealed class OpenMeteoGeocodingClient(HttpClient httpClient) : IGeocodi
         {
             return Result.Fail(new Error("Deserialization failed").CausedBy(ex)
                 .WithMetadata("Code", OpenMeteoErrorCodes.Deserialization)
+                .WithMetadata("Provider", OpenMeteoProviderInfo.OpenMeteoGeocoding)
                 .WithMetadata("Uri", request.RequestUri!.ToString())
-                .WithMetadata("Provider", OpenMeteoProviderInfo.OpenMeteoGeocoding));
+                .WithMetadata("ExceptionMessage", ex.Message)
+                .WithMetadata("ExceptionPath", ex.Path)
+            );
         }
     }
 }

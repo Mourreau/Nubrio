@@ -9,4 +9,5 @@ public static class OpenMeteoErrorCodes
     public const string Timeout            = "OpenMeteo.Timeout";
     public const string NetworkError       = "OpenMeteo.NetworkError";
     public const string Deserialization    = "OpenMeteo.Deserialization";
+    public const string GeocodingNotFound = "OpenMeteo.GeocodingNotFound";
 }

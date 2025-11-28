@@ -1,3 +1,4 @@
+using System.Reflection;
 using Nubrio.Application.Interfaces;
 using Nubrio.Application.Services;
 using Nubrio.Infrastructure.MockProvider;
@@ -13,7 +14,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(setupAction =>
+{
+    var xmlCommentsFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlCommentsFullPath = Path.Combine(AppContext.BaseDirectory, xmlCommentsFile);
+
+    setupAction.IncludeXmlComments(xmlCommentsFullPath);
+});
+
 builder.Services.AddScoped<IClock, Clock>();
 builder.Services.AddScoped<IGeocodingProvider, OpenMeteoGeocodingProvider>();
 builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
