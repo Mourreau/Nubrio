@@ -71,6 +71,7 @@ internal sealed class OpenMeteoForecastClient : ExternalApiClientBase, IForecast
 
         return new ProviderInfo
         (
+            providerKey: nameof(ProviderOptions.OpenMeteo),
             name: cfg.Name,
             service: nameof(OpenMeteoForecastClient),
             baseUrl: cfg.GeocodingBaseUrl

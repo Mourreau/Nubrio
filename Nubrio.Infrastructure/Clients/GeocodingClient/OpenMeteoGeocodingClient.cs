@@ -59,6 +59,7 @@ internal sealed class OpenMeteoGeocodingClient : ExternalApiClientBase, IGeocodi
 
         return new ProviderInfo
         (
+            providerKey: nameof(ProviderOptions.OpenMeteo),
             name: cfg.Name,
             service: nameof(OpenMeteoGeocodingClient),
             baseUrl: cfg.GeocodingBaseUrl
