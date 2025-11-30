@@ -51,7 +51,7 @@ internal abstract class ExternalApiClientBase<TErrorCodes>
             var dto = await JsonSerializer.DeserializeAsync<TDto>(s, JsonOptions, ct);
             if (dto is null)
                 return BuildError(
-                    "Deserialization returned null",
+                    "Failed to deserialize response from external provider.",
                     request.RequestUri!,
                     ErrorCodes.DeserializationNull());
 
@@ -60,7 +60,7 @@ internal abstract class ExternalApiClientBase<TErrorCodes>
         catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
         {
             return BuildExceptionError(
-                "Timeout",
+                "Timeout while calling external provider.",
                 request.RequestUri!,
                 ErrorCodes.Timeout(),
                 ex);
@@ -68,7 +68,7 @@ internal abstract class ExternalApiClientBase<TErrorCodes>
         catch (HttpRequestException ex)
         {
             return BuildExceptionError(
-                "Network error",
+                "Network error while calling external provider.",
                 request.RequestUri!,
                 ErrorCodes.NetworkError(),
                 ex);
@@ -91,17 +91,16 @@ internal abstract class ExternalApiClientBase<TErrorCodes>
     private Error BuildHttpError(HttpResponseMessage response,
         Uri requestUri)
     {
-
         var errorCode = response.StatusCode switch
         {
             HttpStatusCode.TooManyRequests => ErrorCodes.TooManyRequests(),
             >= HttpStatusCode.InternalServerError => ErrorCodes.InternalError(),
-            >= HttpStatusCode.BadRequest and < HttpStatusCode.InternalServerError => ErrorCodes.ExternalClientError(),
+            >= HttpStatusCode.BadRequest => ErrorCodes.ExternalClientError(),
             _ => ErrorCodes.InternalError()
         };
 
         return new Error(
-                $"External provider '{Info.Name}' responded {response.StatusCode} for {requestUri}")
+                "External provider returned non-success status code.")
             .WithProviderContext(
                 Info,
                 requestUri,
@@ -117,7 +116,7 @@ internal abstract class ExternalApiClientBase<TErrorCodes>
             .WithCode(code);
 
     private Error BuildJsonExceptionError(Uri requestUri, string code, JsonException ex)
-        => new Error("Deserialization failed")
+        => new Error("Failed to deserialize response from external provider.")
             .CausedBy(ex)
             .WithProviderContext(Info, requestUri)
             .WithCode(code)
