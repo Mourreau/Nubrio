@@ -11,8 +11,6 @@ namespace Nubrio.Infrastructure.Clients.ForecastClient;
 
 internal sealed class OpenMeteoForecastClient : ExternalApiClientBase<ForecastProviderErrorCodes>, IForecastClient
 {
-
-
     public OpenMeteoForecastClient(HttpClient httpClient, IOptions<ProviderOptions> options)
         : this(httpClient, CreateProviderInfo(options))
     {
@@ -72,7 +70,7 @@ internal sealed class OpenMeteoForecastClient : ExternalApiClientBase<ForecastPr
             providerKey: nameof(ProviderOptions.OpenMeteo),
             name: cfg.Name,
             service: nameof(OpenMeteoForecastClient),
-            baseUrl: cfg.GeocodingBaseUrl
+            baseUrl: cfg.ForecastBaseUrl
         );
     }
 }
