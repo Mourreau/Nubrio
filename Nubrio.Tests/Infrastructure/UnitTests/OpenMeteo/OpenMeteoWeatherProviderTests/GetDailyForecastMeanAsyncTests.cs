@@ -5,10 +5,10 @@ using Moq;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Enums;
 using Nubrio.Domain.Models;
-using Nubrio.Infrastructure.Http.ForecastClient;
-using Nubrio.Infrastructure.OpenMeteo.DTOs.DailyForecast.MeanForecast;
-using Nubrio.Infrastructure.OpenMeteo.OpenMeteoForecast;
-using Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
+using Nubrio.Infrastructure.Clients.ForecastClient;
+using Nubrio.Infrastructure.Providers.OpenMeteo.DTOs.DailyForecast.MeanForecast;
+using Nubrio.Infrastructure.Providers.OpenMeteo.OpenMeteoForecast;
+using Nubrio.Infrastructure.Providers.OpenMeteo.Validators.Errors;
 using Nubrio.Tests.Infrastructure.UnitTests.OpenMeteo.TestData.OpenMeteoWeatherProviderTestData;
 using Xunit.Abstractions;
 
@@ -17,7 +17,7 @@ namespace Nubrio.Tests.Infrastructure.UnitTests.OpenMeteo.OpenMeteoWeatherProvid
 public class GetDailyForecastMeanAsyncTests
 {
     private readonly ITestOutputHelper _testOutputHelper;
-    private readonly IWeatherProvider _weatherProvider;
+    private readonly IForecastProvider _forecastProvider;
 
     private readonly Mock<IForecastClient> _openMeteoClientMock;
     private readonly Mock<IWeatherCodeTranslator> _weatherCodeTranslatorMock;
@@ -28,7 +28,7 @@ public class GetDailyForecastMeanAsyncTests
         _openMeteoClientMock = new Mock<IForecastClient>();
         _weatherCodeTranslatorMock = new Mock<IWeatherCodeTranslator>();
 
-        _weatherProvider = new OpenMeteoWeatherProvider(
+        _forecastProvider = new OpenMeteoForecastProvider(
             _openMeteoClientMock.Object,
             _weatherCodeTranslatorMock.Object);
     }
@@ -61,7 +61,7 @@ public class GetDailyForecastMeanAsyncTests
             translator.Translate(clientResponse.Daily.WeatherCode[0])).Returns(weatherCondition);
 
         // Act
-        var result = await _weatherProvider.GetDailyForecastMeanAsync(
+        var result = await _forecastProvider.GetDailyForecastMeanAsync(
             testLocation, date,
             CancellationToken.None);
 
@@ -108,7 +108,7 @@ public class GetDailyForecastMeanAsyncTests
 
 
         // Act
-        var result = await _weatherProvider.GetDailyForecastMeanAsync(testLocation, date, CancellationToken.None);
+        var result = await _forecastProvider.GetDailyForecastMeanAsync(testLocation, date, CancellationToken.None);
 
         // Assert
         result.IsFailed.Should().BeTrue();
@@ -152,7 +152,7 @@ public class GetDailyForecastMeanAsyncTests
 
 
         // Act
-        var result = await _weatherProvider.GetDailyForecastMeanAsync(testLocation, date, CancellationToken.None);
+        var result = await _forecastProvider.GetDailyForecastMeanAsync(testLocation, date, CancellationToken.None);
 
         // Assert
         result.IsFailed.Should().BeTrue();
@@ -199,7 +199,7 @@ public class GetDailyForecastMeanAsyncTests
 
 
         // Act
-        var result = await _weatherProvider.GetDailyForecastMeanAsync(testLocation, date, CancellationToken.None);
+        var result = await _forecastProvider.GetDailyForecastMeanAsync(testLocation, date, CancellationToken.None);
 
         // Assert
         result.IsFailed.Should().BeTrue();

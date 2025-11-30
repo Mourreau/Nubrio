@@ -1,4 +1,3 @@
-using System.Security.Authentication;
 using FluentAssertions;
 using FluentResults;
 using Moq;
@@ -15,7 +14,7 @@ public class GetCurrentForecastAsyncTests
     private readonly ITestOutputHelper _testOutputHelper;
     private readonly WeatherForecastService _weatherForecastService;
 
-    private readonly Mock<IWeatherProvider> _weatherProviderMock;
+    private readonly Mock<IForecastProvider> _weatherProviderMock;
     private readonly Mock<IGeocodingProvider> _geocodingServiceMock;
     private readonly Mock<IClock> _clockMock;
     private readonly Mock<IConditionStringMapper> _conditionStringMapperMock;
@@ -25,7 +24,7 @@ public class GetCurrentForecastAsyncTests
     public GetCurrentForecastAsyncTests(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
-        _weatherProviderMock = new Mock<IWeatherProvider>();
+        _weatherProviderMock = new Mock<IForecastProvider>();
         _geocodingServiceMock = new Mock<IGeocodingProvider>();
         _clockMock = new Mock<IClock>();
         _conditionStringMapperMock = new Mock<IConditionStringMapper>();

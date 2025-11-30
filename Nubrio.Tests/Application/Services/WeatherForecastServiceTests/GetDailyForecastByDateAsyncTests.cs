@@ -17,7 +17,7 @@ public class GetDailyForecastByDateAsyncTests
     private readonly ITestOutputHelper _testOutputHelper;
     private readonly WeatherForecastService _weatherForecastService;
 
-    private readonly Mock<IWeatherProvider> _weatherProviderMock;
+    private readonly Mock<IForecastProvider> _weatherProviderMock;
     private readonly Mock<IGeocodingProvider> _geocodingServiceMock;
     private readonly Mock<IClock> _clockMock;
     private readonly Mock<IConditionStringMapper> _conditionStringMapperMock;
@@ -27,7 +27,7 @@ public class GetDailyForecastByDateAsyncTests
     public GetDailyForecastByDateAsyncTests(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
-        _weatherProviderMock = new Mock<IWeatherProvider>();
+        _weatherProviderMock = new Mock<IForecastProvider>();
         _geocodingServiceMock = new Mock<IGeocodingProvider>();
         _clockMock = new Mock<IClock>();
         _conditionStringMapperMock = new Mock<IConditionStringMapper>();

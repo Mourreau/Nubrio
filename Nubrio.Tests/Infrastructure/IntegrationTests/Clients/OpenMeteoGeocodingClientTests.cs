@@ -1,9 +1,9 @@
 using System.Net;
 using FluentAssertions;
-using Nubrio.Infrastructure.Http.GeocodingClient;
-using Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
+using Nubrio.Infrastructure.Clients.GeocodingClient;
+using Nubrio.Infrastructure.Providers.OpenMeteo.Validators.Errors;
 
-namespace Nubrio.Tests.Infrastructure.IntegrationTests.Http;
+namespace Nubrio.Tests.Infrastructure.IntegrationTests.Clients;
 
 public class OpenMeteoGeocodingClientTests
 {

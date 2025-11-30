@@ -1,4 +1,4 @@
-namespace Nubrio.Tests.Infrastructure.IntegrationTests.Http;
+namespace Nubrio.Tests.Infrastructure.IntegrationTests.Clients;
 
 internal sealed class StubHttpMessageHandler : HttpMessageHandler
 {
