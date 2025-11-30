@@ -6,28 +6,29 @@ public abstract class ProviderErrorCodes
 
     protected ProviderErrorCodes(ProviderInfo providerInfo)
     {
-       Info = providerInfo;
+        Info = providerInfo;
     }
 
     public abstract string NotFound();
+
     public string DeserializationNull()
         => $"{Info.Service}.JsonDeserializationReturnedNull";
+
     public string DeserializationException()
         => $"{Info.Service}.JsonDeserializationFailedWithException";
-    
+
     public string TooManyRequests()
         => $"{Info.Service}.TooManyRequests";
-    
+
     public string InternalError()
         => $"{Info.Service}.InternalError";
-    
-    public string NetworkError()
-    => $"{Info.Service}.NetworkError";
-    
-    public string Timeout()
-    => $"{Info.Service}.Timeout";
-    
-    public string ExternalClientError()
-    => $"{Info.Service}.ExternalClientError";
 
+    public string NetworkError()
+        => $"{Info.Service}.NetworkError";
+
+    public string Timeout()
+        => $"{Info.Service}.Timeout";
+
+    public string ExternalClientError()
+        => $"{Info.Service}.ExternalClientError";
 }

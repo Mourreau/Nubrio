@@ -10,7 +10,6 @@ namespace Nubrio.Infrastructure.Clients.GeocodingClient;
 
 internal sealed class OpenMeteoGeocodingClient : ExternalApiClientBase<GeocodingProviderErrorCodes>, IGeocodingClient
 {
-
     public OpenMeteoGeocodingClient(HttpClient httpClient, IOptions<ProviderOptions> options)
         : this(httpClient, CreateProviderInfo(options))
     {

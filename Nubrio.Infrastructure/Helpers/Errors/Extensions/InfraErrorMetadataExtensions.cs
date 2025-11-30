@@ -11,7 +11,6 @@ namespace Nubrio.Infrastructure.Helpers.Errors.Extensions;
 /// </summary>
 internal static class InfraErrorMetadataExtensions
 {
-
     public static Error WithCode(this Error error, string code)
         => error.WithMetadata(ProviderErrorMetadataKeys.Code, code);
 
