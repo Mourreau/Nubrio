@@ -8,10 +8,8 @@ using Nubrio.Infrastructure.Providers.ProviderBase.ErrorsCodes;
 
 namespace Nubrio.Infrastructure.Clients.GeocodingClient;
 
-internal sealed class OpenMeteoGeocodingClient : ExternalApiClientBase, IGeocodingClient
+internal sealed class OpenMeteoGeocodingClient : ExternalApiClientBase<GeocodingProviderErrorCodes>, IGeocodingClient
 {
-    private readonly GeocodingProviderErrorCodes _errorCodes;
-
     public OpenMeteoGeocodingClient(HttpClient httpClient, IOptions<ProviderOptions> options)
         : this(httpClient, CreateProviderInfo(options))
     {
@@ -20,7 +18,6 @@ internal sealed class OpenMeteoGeocodingClient : ExternalApiClientBase, IGeocodi
     private OpenMeteoGeocodingClient(HttpClient httpClient, ProviderInfo info)
         : base(httpClient, info, new GeocodingProviderErrorCodes(info))
     {
-        _errorCodes = (GeocodingProviderErrorCodes)ErrorCodes;
     }
 
 
@@ -47,7 +44,7 @@ internal sealed class OpenMeteoGeocodingClient : ExternalApiClientBase, IGeocodi
             return BuildError(
                 $"No location found for city '{city}'",
                 request.RequestUri!,
-                _errorCodes.NotFound());
+                ErrorCodes.NotFound());
         }
 
         return Result.Ok(dto);
@@ -59,6 +56,7 @@ internal sealed class OpenMeteoGeocodingClient : ExternalApiClientBase, IGeocodi
 
         return new ProviderInfo
         (
+            providerKey: nameof(ProviderOptions.OpenMeteo),
             name: cfg.Name,
             service: nameof(OpenMeteoGeocodingClient),
             baseUrl: cfg.GeocodingBaseUrl
