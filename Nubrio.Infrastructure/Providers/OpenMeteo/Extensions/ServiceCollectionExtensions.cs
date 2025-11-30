@@ -25,22 +25,37 @@ public static class ServiceCollectionExtensions
 
         services.AddOptions<ProviderOptions>()
             .Bind(section)
-            .Validate(o => o.OpenMeteo is not null,
+            .Validate(o => 
+                    o.OpenMeteo is not null,
                 "WeatherProviders:OpenMeteo section is required")
-            .Validate(o => !string.IsNullOrWhiteSpace(o.OpenMeteo.ForecastBaseUrl),
+            
+            .Validate(o => 
+                    o.OpenMeteo is not null &&
+                           !string.IsNullOrWhiteSpace(o.OpenMeteo.ForecastBaseUrl),
                 "ForecastBaseUrl is required")
-            .Validate(o => !string.IsNullOrWhiteSpace(o.OpenMeteo.GeocodingBaseUrl),
+            
+            .Validate(o => 
+                    o.OpenMeteo is not null &&
+                           !string.IsNullOrWhiteSpace(o.OpenMeteo.GeocodingBaseUrl),
                 "GeocodingBaseUrl is required")
+            
             .Validate(o =>
+                    o.OpenMeteo is not null &&
                     Uri.TryCreate(o.OpenMeteo.ForecastBaseUrl, UriKind.Absolute, out var u1) &&
                     u1.Scheme == Uri.UriSchemeHttps,
                 "ForecastBaseUrl must be absolute https URL")
+            
             .Validate(o =>
+                    o.OpenMeteo is not null &&
                     Uri.TryCreate(o.OpenMeteo.GeocodingBaseUrl, UriKind.Absolute, out var u2) &&
                     u2.Scheme == Uri.UriSchemeHttps,
                 "GeocodingBaseUrl must be absolute https URL")
-            .Validate(o => o.OpenMeteo.TimeoutSeconds is >= 1 and <= 30,
+            
+            .Validate(o => 
+                    o.OpenMeteo is not null &&
+                           o.OpenMeteo.TimeoutSeconds is >= 1 and <= 30,
                 "TimeoutSeconds must be 1..30")
+            
             .ValidateOnStart();
 
         // Forecast (typed)
