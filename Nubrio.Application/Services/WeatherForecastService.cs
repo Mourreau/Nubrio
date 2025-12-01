@@ -1,8 +1,11 @@
 using FluentResults;
 using Nubrio.Application.DTOs.CurrentForecast;
 using Nubrio.Application.DTOs.DailyForecast;
+using Nubrio.Application.DTOs.WeeklyForecast;
 using Nubrio.Application.Interfaces;
 using Nubrio.Application.Validators.Errors;
+using Nubrio.Domain.Models;
+using Nubrio.Domain.Models.Weekly;
 
 namespace Nubrio.Application.Services;
 
@@ -98,7 +101,7 @@ public class WeatherForecastService : IWeatherForecastService
         if (geocodingResult.IsFailed)
         {
             // TODO: Реализовать обработку ошибки когда геокодинг не нашел город.
-            
+
             // var firstError = geocodingResult.Errors[0];
             // var code = firstError.Metadata?["ServiceCode"] as string;
             //
@@ -107,7 +110,7 @@ public class WeatherForecastService : IWeatherForecastService
             //     return Result.Fail(new Error(firstError.Message)
             //         .WithMetadata("Code", Fore));
             // }
-            
+
             return Result.Fail(geocodingResult.Errors); // Все остальные ошибки отдаем как internal
         }
 
@@ -139,9 +142,72 @@ public class WeatherForecastService : IWeatherForecastService
         return Result.Ok(result);
     }
 
-    public Task<Result<DailyForecastDto>> GetDailyForecastRangeAsync(string city,
-        DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken)
+    public async Task<Result<WeeklyForecastDto>> GetForecastByWeekAsync(string city,
+        CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        // 1. Геокодинг
+        var geocodingResult = await ResolveLocationAsync(city, cancellationToken);
+        if (geocodingResult.IsFailed) return Result.Fail(geocodingResult.Errors);
+
+        // 2. Недельный прогноз
+        var providerResult =
+            await _forecastProvider.GetWeeklyForecastMeanAsync(geocodingResult.Value, cancellationToken);
+        if (providerResult.IsFailed) return Result.Fail(providerResult.Errors);
+
+        // 3. Получение локального часового пояса
+        var timeZoneResolveResult = _timeZoneResolver.GetTimeZoneInfoById(geocodingResult.Value.TimeZoneIana);
+
+        if (timeZoneResolveResult.IsFailed)
+            return Result.Fail(timeZoneResolveResult.Errors);
+
+        var localFetched = TimeZoneInfo.ConvertTime(
+            _clock.UtcNow, timeZoneResolveResult.Value);
+
+        var result = new WeeklyForecastDto
+        {
+            City = geocodingResult.Value.Name,
+            Days = GetDays(providerResult.Value),
+            FetchedAt = localFetched
+        };
+
+        return Result.Ok(result);
+    }
+
+    private IReadOnlyList<DaysDto> GetDays(WeeklyForecastMean weeklyForecast)
+    {
+        var days = new List<DaysDto>();
+
+        foreach (var day in weeklyForecast.DailyForecasts)
+        {
+            days.Add(new DaysDto
+            {
+                Condition = _conditionStringMapper.From(day.Condition),
+                Date = day.Date,
+                TemperatureMean = day.TemperatureMean
+            });
+        }
+
+        return days;
+    }
+
+
+    private async Task<Result<Location>> ResolveLocationAsync(string city, CancellationToken cancellationToken)
+    {
+        // 0. Проверка входных данных
+        if (string.IsNullOrWhiteSpace(city))
+            return Result.Fail(new Error("City cannot be null or whitespace")
+                .WithMetadata("Code", ForecastServiceErrorCodes.EmptyCity)
+            );
+
+        // 0.5. Проверка на язык
+        var language = _languageResolver.Resolve(city);
+
+        // 1. Геокодинг
+        var geocodingResult = await _geocodingProvider.ResolveAsync(city, language, cancellationToken);
+
+        if (geocodingResult.IsFailed)
+            return Result.Fail(geocodingResult.Errors); // Все остальные ошибки отдаем как internal
+
+        return Result.Ok(geocodingResult.Value);
     }
 }
