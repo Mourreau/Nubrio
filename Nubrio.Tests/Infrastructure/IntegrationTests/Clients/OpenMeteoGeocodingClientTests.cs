@@ -1,12 +1,21 @@
 using System.Net;
 using FluentAssertions;
-using Nubrio.Infrastructure.Http.GeocodingClient;
-using Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
+using Microsoft.Extensions.Options;
+using Nubrio.Infrastructure.Clients.GeocodingClient;
+using Nubrio.Infrastructure.Options;
+using Nubrio.Infrastructure.Providers.OpenMeteo.Validators.Errors;
 
-namespace Nubrio.Tests.Infrastructure.IntegrationTests.Http;
+namespace Nubrio.Tests.Infrastructure.IntegrationTests.Clients;
 
 public class OpenMeteoGeocodingClientTests
 {
+    private readonly IOptions<ProviderOptions> _openMeteoOptions;
+
+    public OpenMeteoGeocodingClientTests()
+    {
+        _openMeteoOptions = CreateProviderOptions();
+    }
+
     [Fact]
     public async Task GeocodeAsync_ValidJson_ReturnsOk()
     {
@@ -41,7 +50,7 @@ public class OpenMeteoGeocodingClientTests
 
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://geocoding-api.open-meteo.com/") };
 
-        var geoClient = new OpenMeteoGeocodingClient(client);
+        var geoClient = new OpenMeteoGeocodingClient(client, _openMeteoOptions);
 
         var result = await geoClient.GeocodeAsync("Berlin", 5, "en", CancellationToken.None);
 
@@ -64,7 +73,7 @@ public class OpenMeteoGeocodingClientTests
             new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(invalid) });
 
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://geocoding-api.open-meteo.com/") };
-        var sut = new OpenMeteoGeocodingClient(client);
+        var sut = new OpenMeteoGeocodingClient(client, _openMeteoOptions);
 
         var res = await sut.GeocodeAsync("X", 1, "en", CancellationToken.None);
 
@@ -79,7 +88,7 @@ public class OpenMeteoGeocodingClientTests
     {
         var handler = new StubHttpMessageHandler((_, _) => new HttpResponseMessage(code));
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://geocoding-api.open-meteo.com/") };
-        var geoClient = new OpenMeteoGeocodingClient(client);
+        var geoClient = new OpenMeteoGeocodingClient(client, _openMeteoOptions);
 
         var res = await geoClient.GeocodeAsync("City", 1, "en", CancellationToken.None);
 
@@ -102,7 +111,7 @@ public class OpenMeteoGeocodingClientTests
         var handler = new ThrowingHandler(() => new TaskCanceledException());
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://geocoding-api.open-meteo.com/") };
 
-        var sut = new OpenMeteoGeocodingClient(client);
+        var sut = new OpenMeteoGeocodingClient(client, _openMeteoOptions);
         var res = await sut.GeocodeAsync("City", 1, "en", CancellationToken.None);
 
         res.IsFailed.Should().BeTrue();
@@ -115,7 +124,7 @@ public class OpenMeteoGeocodingClientTests
         var handler = new ThrowingHandler(() => new HttpRequestException("boom"));
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://geocoding-api.open-meteo.com/") };
 
-        var sut = new OpenMeteoGeocodingClient(client);
+        var sut = new OpenMeteoGeocodingClient(client, _openMeteoOptions);
         var res = await sut.GeocodeAsync("City", 1, "en", CancellationToken.None);
 
         res.IsFailed.Should().BeTrue();
@@ -132,8 +141,30 @@ public class OpenMeteoGeocodingClientTests
         });
 
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://geocoding-api.open-meteo.com/") };
-        var sut = new OpenMeteoGeocodingClient(client);
+        var sut = new OpenMeteoGeocodingClient(client, _openMeteoOptions);
 
         await sut.GeocodeAsync("New York", 5, "en", CancellationToken.None);
     }
+
+
+    #region Helpers
+
+    private static IOptions<ProviderOptions> CreateProviderOptions()
+    {
+        var options = new ProviderOptions
+        {
+            OpenMeteo = new ProviderSettings
+            {
+                Name = "Open-Meteo",
+                ForecastBaseUrl = "https://api.open-meteo.com/",
+                GeocodingBaseUrl = "https://geocoding-api.open-meteo.com/",
+                TimeoutSeconds = 5,
+                CacheTtlSeconds = 120
+            }
+        };
+
+        return Options.Create(options);
+    }
+
+    #endregion
 }

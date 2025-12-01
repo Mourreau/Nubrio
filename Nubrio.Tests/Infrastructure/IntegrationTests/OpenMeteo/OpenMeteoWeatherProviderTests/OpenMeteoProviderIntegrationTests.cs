@@ -5,12 +5,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Models;
-using Nubrio.Infrastructure.Http.ForecastClient;
-using Nubrio.Infrastructure.OpenMeteo.Extensions;
-using Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
-using Nubrio.Infrastructure.OpenMeteo.WmoCodes;
+using Nubrio.Infrastructure.Clients.ForecastClient;
+using Nubrio.Infrastructure.Providers.OpenMeteo.Extensions;
+using Nubrio.Infrastructure.Providers.OpenMeteo.Validators.Errors;
+using Nubrio.Infrastructure.Providers.OpenMeteo.WmoCodes;
 using Nubrio.Infrastructure.Services;
-using Nubrio.Tests.Infrastructure.IntegrationTests.Http;
+using Nubrio.Tests.Infrastructure.IntegrationTests.Clients;
 
 namespace Nubrio.Tests.Infrastructure.IntegrationTests.OpenMeteo.OpenMeteoWeatherProviderTests;
 
@@ -54,7 +54,7 @@ public class OpenMeteoProviderIntegrationTests
         // Arrange
         var handler = new StubHttpMessageHandler((_, __) => Json200(validJson));
         var sp = BuildProvider(handler, ForecastBaseUrl, GeocodeBaseUrl);
-        var provider = sp.GetRequiredService<IWeatherProvider>();
+        var provider = sp.GetRequiredService<IForecastProvider>();
 
         var location = new Location(
             Guid.NewGuid(), "Moscow", new Coordinates(55.75, 37.62), "Europe/Moscow");
@@ -78,7 +78,7 @@ public class OpenMeteoProviderIntegrationTests
                 : Json200(validJson));
 
         var sp = BuildProvider(handler, ForecastBaseUrl, GeocodeBaseUrl);
-        var provider = sp.GetRequiredService<IWeatherProvider>();
+        var provider = sp.GetRequiredService<IForecastProvider>();
 
         var location = new Location(
             Guid.NewGuid(), "Moscow", new Coordinates(55.75, 37.62), "Europe/Moscow");
@@ -101,7 +101,7 @@ public class OpenMeteoProviderIntegrationTests
 
         var handler = new StubHttpMessageHandler((_, __) => Json200(badJson));
         var sp = BuildProvider(handler, ForecastBaseUrl, GeocodeBaseUrl);
-        var provider = sp.GetRequiredService<IWeatherProvider>();
+        var provider = sp.GetRequiredService<IForecastProvider>();
 
         var location = new Location(
             Guid.NewGuid(), "Moscow", new Coordinates(55.75, 37.62), "Europe/Moscow");

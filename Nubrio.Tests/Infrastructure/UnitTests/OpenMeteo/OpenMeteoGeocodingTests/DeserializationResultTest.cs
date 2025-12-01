@@ -1,6 +1,6 @@
 using System.Text.Json;
 using FluentAssertions;
-using Nubrio.Infrastructure.OpenMeteo.OpenMeteoGeocoding.DTOs;
+using Nubrio.Infrastructure.Providers.OpenMeteo.OpenMeteoGeocoding.DTOs;
 
 namespace Nubrio.Tests.Infrastructure.UnitTests.OpenMeteo.OpenMeteoGeocodingTests;
 

@@ -18,47 +18,64 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddOpenMeteo(this IServiceCollection services, IConfiguration configuration)
     {
-        var section = configuration.GetSection("WeatherProviders:OpenMeteo");
-        var clientOptions = section.Get<OpenMeteoOptions>()
-                            ?? throw new InvalidOperationException("WeatherProviders:OpenMeteo is not configured.");
+        var section = configuration.GetSection("WeatherProviders");
+        var clientOptions = section.Get<ProviderOptions>()
+                            ?? throw new InvalidOperationException("WeatherProviders is not configured.");
+        var openMeteoOptions = clientOptions.OpenMeteo
+                               ?? throw new InvalidOperationException(
+                                   "WeatherProviders:OpenMeteo section is required.");
 
 
-        services.AddOptions<OpenMeteoOptions>()
+        services.AddOptions<ProviderOptions>()
             .Bind(section)
-            .Validate(o
-                => !string.IsNullOrWhiteSpace(o.ForecastBaseUrl), "ForecastBaseUrl is required")
-            .Validate(o
-                => !string.IsNullOrWhiteSpace(o.GeocodingBaseUrl), "GeocodingBaseUrl is required")
-            .Validate(
-                o => Uri.TryCreate(o.ForecastBaseUrl, UriKind.Absolute, out var u1) && u1.Scheme == Uri.UriSchemeHttps,
+            .Validate(o =>
+                    o.OpenMeteo is not null,
+                "WeatherProviders:OpenMeteo section is required")
+            .Validate(o =>
+                    o.OpenMeteo is not null &&
+                    !string.IsNullOrWhiteSpace(o.OpenMeteo.ForecastBaseUrl),
+                "ForecastBaseUrl is required")
+            .Validate(o =>
+                    o.OpenMeteo is not null &&
+                    !string.IsNullOrWhiteSpace(o.OpenMeteo.GeocodingBaseUrl),
+                "GeocodingBaseUrl is required")
+            .Validate(o =>
+                    o.OpenMeteo is not null &&
+                    Uri.TryCreate(o.OpenMeteo.ForecastBaseUrl, UriKind.Absolute, out var u1) &&
+                    u1.Scheme == Uri.UriSchemeHttps,
                 "ForecastBaseUrl must be absolute https URL")
-            .Validate(
-                o => Uri.TryCreate(o.GeocodingBaseUrl, UriKind.Absolute, out var u2) && u2.Scheme == Uri.UriSchemeHttps,
+            .Validate(o =>
+                    o.OpenMeteo is not null &&
+                    Uri.TryCreate(o.OpenMeteo.GeocodingBaseUrl, UriKind.Absolute, out var u2) &&
+                    u2.Scheme == Uri.UriSchemeHttps,
                 "GeocodingBaseUrl must be absolute https URL")
-            .Validate(o => o.TimeoutSeconds is >= 1 and <= 30, "TimeoutSeconds must be 1..30")
+            .Validate(o =>
+                    o.OpenMeteo is not null &&
+                    o.OpenMeteo.TimeoutSeconds is >= 1 and <= 30,
+                "TimeoutSeconds must be 1..30")
             .ValidateOnStart();
 
         // Forecast (typed)
         services.AddHttpClient<IForecastClient, OpenMeteoForecastClient>((serviceProvider, client) =>
             {
-                var opt = serviceProvider.GetRequiredService<IOptions<OpenMeteoOptions>>().Value;
+                var opt = serviceProvider.GetRequiredService<IOptions<ProviderOptions>>().Value.OpenMeteo;
                 client.BaseAddress = new Uri(opt.ForecastBaseUrl);
                 client.Timeout = Timeout.InfiniteTimeSpan;
                 client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
             })
             .AddResilienceHandler(nameof(OpenMeteoForecastClient), conf =>
-                ConfigureResilience(conf, clientOptions.TimeoutSeconds));
+                ConfigureResilience(conf, openMeteoOptions.TimeoutSeconds));
 
         // Geocoding (typed)
         services.AddHttpClient<IGeocodingClient, OpenMeteoGeocodingClient>((serviceProvider, client) =>
             {
-                var opt = serviceProvider.GetRequiredService<IOptions<OpenMeteoOptions>>().Value;
+                var opt = serviceProvider.GetRequiredService<IOptions<ProviderOptions>>().Value.OpenMeteo;
                 client.BaseAddress = new Uri(opt.GeocodingBaseUrl);
                 client.Timeout = Timeout.InfiniteTimeSpan;
                 client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
             })
             .AddResilienceHandler(nameof(OpenMeteoGeocodingClient), conf =>
-                ConfigureResilience(conf, clientOptions.TimeoutSeconds));
+                ConfigureResilience(conf, openMeteoOptions.TimeoutSeconds));
 
         services.AddScoped<IGeocodingProvider, OpenMeteoGeocodingProvider>();
         services.AddScoped<IForecastProvider, OpenMeteoForecastProvider>();
