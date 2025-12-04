@@ -1,6 +1,7 @@
 using FluentResults;
 using Nubrio.Infrastructure.Providers.OpenMeteo.DTOs.DailyForecast;
 using Nubrio.Infrastructure.Providers.OpenMeteo.DTOs.DailyForecast.MeanForecast;
+using Nubrio.Infrastructure.Providers.OpenMeteo.DTOs.WeeklyForecast;
 
 namespace Nubrio.Infrastructure.Clients.ForecastClient;
 
@@ -16,5 +17,10 @@ public interface IForecastClient
         double latitude,
         double longitude,
         DateOnly date,
+        CancellationToken ct);
+
+    Task<Result<OpenMeteoWeeklyMeanResponseDto>> GetOpenMeteoWeeklyMeanAsync(
+        double latitude,
+        double longitude,
         CancellationToken ct);
 }
