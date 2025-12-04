@@ -4,4 +4,16 @@ public class ForecastProviderErrorCodes(ProviderInfo providerInfo) : ProviderErr
 {
     public override string NotFound()
         => $"{Info.Service}.ForecastNotFound";
+
+    public string MalformedDailyMean()
+        => $"{Info.Service}.MalformedDailyMean";
+
+    public string UnitsMismatch()
+        => $"{Info.Service}.UnitsMismatch";
+
+    public string TemperatureOutOfRange()
+        => $"{Info.Service}.TemperatureOutOfRange";
+
+    public string InvalidDateFormat()
+        => $"{Info.Service}.InvalidDateFormat";
 }
