@@ -100,7 +100,7 @@ public class OpenMeteoForecastProvider : IForecastProvider
         OpenMeteoWeeklyMeanResponseDto openMeteoResponseDto, Location location)
     {
         var count = openMeteoResponseDto.Daily.Temperature2mMean.Count;
-        var daily = new DailyForecastMean[count + 1];
+        var daily = new DailyForecastMean[count];
 
         for (int i = 0; i < count; i++)
         {
