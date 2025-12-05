@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Nubrio.Application.DTOs.WeeklyForecast;
 using Nubrio.Application.Interfaces;
 using Nubrio.Application.Validators.Errors;
-using Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
 using Nubrio.Presentation.DTOs.Response;
 using Nubrio.Presentation.DTOs.Response.WeeklyResponse;
 using Nubrio.Presentation.Mappers;
@@ -10,7 +9,7 @@ using Nubrio.Presentation.Mappers;
 namespace Nubrio.Presentation.Controllers;
 
 [ApiController]
-[Route("api/weather")]
+[Route("api/weather/{city}")]
 public class WeatherController : ControllerBase
 {
     private readonly IWeatherForecastService _weatherForecastService;
@@ -23,7 +22,7 @@ public class WeatherController : ControllerBase
         _clock = clock;
     }
 
-    [HttpGet("{city}/current")]
+    [HttpGet("current")]
     public async Task<ActionResult<CurrentWeatherResponseDto>> GetCurrentForecastByCity(
         [FromRoute] string city,
         CancellationToken cancellationToken)
@@ -68,7 +67,7 @@ public class WeatherController : ControllerBase
     /// <response code="500">
     /// Внутренняя ошибка сервера или ошибка внешнего провайдера погоды.
     /// </response>
-    [HttpGet("{city}")]
+    [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(typeof(DailyForecastResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -97,8 +96,8 @@ public class WeatherController : ControllerBase
 
             if (code == ForecastServiceErrorCodes.EmptyCity)
                 return BadRequest(firstError.Message);
-            
-            if (code == OpenMeteoErrorCodes.GeocodingNotFound)
+
+            if (code == ForecastServiceErrorCodes.GeocodingNotFound)
                 return NotFound(firstError.Message);
 
             return Problem(
@@ -111,9 +110,9 @@ public class WeatherController : ControllerBase
         var result = new DailyForecastResponseDto
         {
             City = forecastDto.City,
-            Condition = forecastDto.Conditions[0],
-            Date = forecastDto.Dates[0],
-            TemperatureC = forecastDto.TemperaturesMean[0],
+            Condition = forecastDto.Condition,
+            Date = forecastDto.Date,
+            TemperatureC = forecastDto.TemperatureMean,
             FetchedAt = forecastDto.FetchedAt,
             IconUrl = "Blank-Text", // TODO: Добавить иконки
             Source = "Open-Meteo", // TODO: Информацию о провайдере контроллер должен получать извне
