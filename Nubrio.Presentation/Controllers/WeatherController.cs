@@ -84,7 +84,7 @@ public class WeatherController : ControllerBase
             DateOnly.FromDateTime(_clock.UtcNow.UtcDateTime)
                 .AddMonths(3); // Прогноз погоды может быть сделан до 3-х месяцев вперед
 
-        if (date > forecastDateOffset) return BadRequest($"Date must not be later than 3 months: {forecastDateOffset}");
+        if (date > forecastDateOffset) return BadRequest($"Date must not be later than {forecastDateOffset}");
 
         var dailyForecast =
             await _weatherForecastService.GetDailyForecastByDateAsync(city, date, cancellationToken);
@@ -107,18 +107,8 @@ public class WeatherController : ControllerBase
 
         var forecastDto = dailyForecast.Value;
 
-        var result = new DailyForecastResponseDto
-        {
-            City = forecastDto.City,
-            Condition = forecastDto.Condition,
-            Date = forecastDto.Date,
-            TemperatureC = forecastDto.TemperatureMean,
-            FetchedAt = forecastDto.FetchedAt,
-            IconUrl = "Blank-Text", // TODO: Добавить иконки
-            Source = "Open-Meteo", // TODO: Информацию о провайдере контроллер должен получать извне
-        };
 
-        return Ok(result);
+        return Ok(ForecastMapper.ToDailyResponse(forecastDto));
     }
 
 
@@ -156,6 +146,7 @@ public class WeatherController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(typeof(WeeklyForecastResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<WeeklyForecastResponseDto>> GetWeeklyForecastByCity(
         [FromRoute] string city,
@@ -164,12 +155,12 @@ public class WeatherController : ControllerBase
         if (string.IsNullOrWhiteSpace(city))
             return BadRequest("City cannot be null or whitespace");
 
-        var dailyForecast =
+        var weeklyForecast =
             await _weatherForecastService.GetForecastByWeekAsync(city, cancellationToken);
 
-        if (dailyForecast.IsFailed)
+        if (weeklyForecast.IsFailed)
         {
-            var firstError = dailyForecast.Errors.First();
+            var firstError = weeklyForecast.Errors.First();
             var code = firstError.Metadata?["Code"] as string;
 
             if (code == ForecastServiceErrorCodes.EmptyCity)
@@ -183,34 +174,8 @@ public class WeatherController : ControllerBase
                 statusCode: StatusCodes.Status500InternalServerError);
         }
 
-        var forecastDto = dailyForecast.Value;
+        var forecastDto = weeklyForecast.Value;
 
-        var result = new WeeklyForecastResponseDto
-        {
-            City = forecastDto.City,
-            Days = GetDays(forecastDto),
-            Source = "Open-Meteo",
-            FetchedAt = forecastDto.FetchedAt
-        };
-
-        return Ok(result);
-    }
-
-    private IReadOnlyList<DaysResponseDto> GetDays(WeeklyForecastMeanDto forecastMeanDto)
-    {
-        var days = new List<DaysResponseDto>();
-
-        foreach (var day in forecastMeanDto.Days)
-        {
-            days.Add(new DaysResponseDto
-            {
-                Date = day.Date,
-                Condition = day.Condition,
-                TemperatureC = day.TemperatureMean,
-                IconUrl = "Not found" // TODO: Добавить иконки
-            });
-        }
-
-        return days;
+        return Ok(ForecastMapper.ToWeeklyResponse(forecastDto));
     }
 }
