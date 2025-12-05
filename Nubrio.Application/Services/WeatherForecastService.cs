@@ -83,7 +83,7 @@ public class WeatherForecastService : IWeatherForecastService
         return Result.Ok(result);
     }
 
-    public async Task<Result<DailyForecastDto>> GetDailyForecastByDateAsync(string city, DateOnly date,
+    public async Task<Result<DailyForecastMeanDto>> GetDailyForecastByDateAsync(string city, DateOnly date,
         CancellationToken cancellationToken)
     {
         // 0. Проверка входных данных
@@ -99,20 +99,8 @@ public class WeatherForecastService : IWeatherForecastService
         var geocodingResult = await _geocodingProvider.ResolveAsync(city, language, cancellationToken);
 
         if (geocodingResult.IsFailed)
-        {
-            // TODO: Реализовать обработку ошибки когда геокодинг не нашел город.
-
-            // var firstError = geocodingResult.Errors[0];
-            // var code = firstError.Metadata?["ServiceCode"] as string;
-            //
-            // if (code == ForecastServiceErrorCodes.GeocodingNotFound)
-            // {
-            //     return Result.Fail(new Error(firstError.Message)
-            //         .WithMetadata("Code", Fore));
-            // }
-
-            return Result.Fail(geocodingResult.Errors); // Все остальные ошибки отдаем как internal
-        }
+            return Result.Fail(geocodingResult.Errors); 
+        
 
         // 2. Погода по дате
         var providerResult = await _forecastProvider.GetDailyForecastMeanAsync(
@@ -130,19 +118,19 @@ public class WeatherForecastService : IWeatherForecastService
         var localFetched = TimeZoneInfo.ConvertTime(
             _clock.UtcNow, timeZoneResolveResult.Value);
 
-        var result = new DailyForecastDto
+        var result = new DailyForecastMeanDto
         {
             City = geocodingResult.Value.Name,
-            Dates = [date],
-            Conditions = [_conditionStringMapper.From(providerResult.Value.Condition)],
+            Date = date,
+            Condition = _conditionStringMapper.From(providerResult.Value.Condition),
             FetchedAt = localFetched,
-            TemperaturesMean = [providerResult.Value.TemperatureMean]
+            TemperatureMean = providerResult.Value.TemperatureMean
         };
 
         return Result.Ok(result);
     }
 
-    public async Task<Result<WeeklyForecastDto>> GetForecastByWeekAsync(string city,
+    public async Task<Result<WeeklyForecastMeanDto>> GetForecastByWeekAsync(string city,
         CancellationToken cancellationToken)
     {
         // 1. Геокодинг
@@ -163,7 +151,7 @@ public class WeatherForecastService : IWeatherForecastService
         var localFetched = TimeZoneInfo.ConvertTime(
             _clock.UtcNow, timeZoneResolveResult.Value);
 
-        var result = new WeeklyForecastDto
+        var result = new WeeklyForecastMeanDto
         {
             City = geocodingResult.Value.Name,
             Days = GetDays(providerResult.Value),

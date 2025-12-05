@@ -9,9 +9,9 @@ public interface IWeatherForecastService
 {
     Task<Result<CurrentForecastDto>> GetCurrentForecastAsync(string city, CancellationToken cancellationToken);
 
-    Task<Result<DailyForecastDto>> GetDailyForecastByDateAsync(
+    Task<Result<DailyForecastMeanDto>> GetDailyForecastByDateAsync(
         string city, DateOnly date, CancellationToken cancellationToken);
 
-    Task<Result<WeeklyForecastDto>> GetForecastByWeekAsync(
+    Task<Result<WeeklyForecastMeanDto>> GetForecastByWeekAsync(
         string city, CancellationToken cancellationToken);
 }

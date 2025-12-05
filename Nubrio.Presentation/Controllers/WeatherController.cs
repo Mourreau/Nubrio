@@ -1,14 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
+using Nubrio.Application.DTOs.WeeklyForecast;
 using Nubrio.Application.Interfaces;
 using Nubrio.Application.Validators.Errors;
-using Nubrio.Infrastructure.OpenMeteo.Validators.Errors;
 using Nubrio.Presentation.DTOs.Response;
+using Nubrio.Presentation.DTOs.Response.WeeklyResponse;
 using Nubrio.Presentation.Mappers;
 
 namespace Nubrio.Presentation.Controllers;
 
 [ApiController]
-[Route("api/weather")]
+[Route("api/weather/{city}")]
 public class WeatherController : ControllerBase
 {
     private readonly IWeatherForecastService _weatherForecastService;
@@ -21,7 +22,7 @@ public class WeatherController : ControllerBase
         _clock = clock;
     }
 
-    [HttpGet("{city}/current")]
+    [HttpGet("current")]
     public async Task<ActionResult<CurrentWeatherResponseDto>> GetCurrentForecastByCity(
         [FromRoute] string city,
         CancellationToken cancellationToken)
@@ -66,7 +67,7 @@ public class WeatherController : ControllerBase
     /// <response code="500">
     /// Внутренняя ошибка сервера или ошибка внешнего провайдера погоды.
     /// </response>
-    [HttpGet("{city}")]
+    [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(typeof(DailyForecastResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -83,7 +84,7 @@ public class WeatherController : ControllerBase
             DateOnly.FromDateTime(_clock.UtcNow.UtcDateTime)
                 .AddMonths(3); // Прогноз погоды может быть сделан до 3-х месяцев вперед
 
-        if (date > forecastDateOffset) return BadRequest($"Date must not be later than 3 months: {forecastDateOffset}");
+        if (date > forecastDateOffset) return BadRequest($"Date must not be later than {forecastDateOffset}");
 
         var dailyForecast =
             await _weatherForecastService.GetDailyForecastByDateAsync(city, date, cancellationToken);
@@ -95,8 +96,8 @@ public class WeatherController : ControllerBase
 
             if (code == ForecastServiceErrorCodes.EmptyCity)
                 return BadRequest(firstError.Message);
-            
-            if (code == OpenMeteoErrorCodes.GeocodingNotFound)
+
+            if (code == ForecastServiceErrorCodes.GeocodingNotFound)
                 return NotFound(firstError.Message);
 
             return Problem(
@@ -106,17 +107,75 @@ public class WeatherController : ControllerBase
 
         var forecastDto = dailyForecast.Value;
 
-        var result = new DailyForecastResponseDto
-        {
-            City = forecastDto.City,
-            Condition = forecastDto.Conditions[0],
-            Date = forecastDto.Dates[0],
-            TemperatureC = forecastDto.TemperaturesMean[0],
-            FetchedAt = forecastDto.FetchedAt,
-            IconUrl = "Blank-Text", // TODO: Добавить иконки
-            Source = "Open-Meteo", // TODO: Информацию о провайдере контроллер должен получать извне
-        };
 
-        return Ok(result);
+        return Ok(ForecastMapper.ToDailyResponse(forecastDto));
+    }
+
+
+    /// <summary>
+    /// Получает прогноз погоды на неделю для указанного города.
+    /// </summary>
+    /// <remarks>
+    /// Пример запроса:
+    /// <c>GET /api/weather/{city}/week</c>
+    ///
+    /// Ограничения:
+    /// - <c>city</c> — обязательный параметр, кириллица или латиница (без транслита)
+    /// - Прогноз всегда возвращается на 7 дней вперёд (значение фиксировано на стороне провайдера)
+    /// </remarks>
+    ///
+    /// <param name="city">
+    /// Название города, как его вводит пользователь.  
+    /// Примеры: "Москва", "Berlin", "Yerevan".
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Токен отмены HTTP-запроса. Позволяет прервать операцию досрочно.
+    /// </param>
+    ///
+    /// <response code="200"> Успешно. Возвращает недельный прогноз погоды для указанного города. </response>
+    ///
+    /// <response code="400"> Некорректный запрос — параметр <c>city</c> пустой или содержит только пробелы.</response>
+    ///
+    /// <response code="404">
+    /// Город не найден геокодинг-провайдером.  
+    /// Возвращается, когда внешнее API не может определить координаты.
+    /// </response>
+    ///
+    /// <response code="500"> Внутренняя ошибка сервера, либо внешнее API вернуло неожиданный результат. </response>
+    [HttpGet("week")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(WeeklyForecastResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<WeeklyForecastResponseDto>> GetWeeklyForecastByCity(
+        [FromRoute] string city,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(city))
+            return BadRequest("City cannot be null or whitespace");
+
+        var weeklyForecast =
+            await _weatherForecastService.GetForecastByWeekAsync(city, cancellationToken);
+
+        if (weeklyForecast.IsFailed)
+        {
+            var firstError = weeklyForecast.Errors.First();
+            var code = firstError.Metadata?["Code"] as string;
+
+            if (code == ForecastServiceErrorCodes.EmptyCity)
+                return BadRequest(firstError.Message);
+
+            if (code == ForecastServiceErrorCodes.GeocodingNotFound)
+                return NotFound(firstError.Message);
+
+            return Problem(
+                detail: firstError.Message,
+                statusCode: StatusCodes.Status500InternalServerError);
+        }
+
+        var forecastDto = weeklyForecast.Value;
+
+        return Ok(ForecastMapper.ToWeeklyResponse(forecastDto));
     }
 }
