@@ -16,23 +16,26 @@ public class ResultToActionResultFilter : IAsyncResultFilter
             await next();
             return;
         }
+        
+        
+        var error = fluentResult.Errors.FirstOrDefault();
+        
 
-        var error = fluentResult.Errors[0];
-
-        if (!error.TryGetAppErrorCode(out var appCode))
+        if (error is null || !error.TryGetAppErrorCode(out var appCode))
         {
             context.Result = BuildProblemResult(
                 statusCode: StatusCodes.Status500InternalServerError,
                 title: "Unknown external error",
-                detail: error.Message,
+                detail: error is not null ? error.Message : "Unknown error",
                 providerCode: null,
-                serviceCode: null);
+                serviceCode: null,
+                context.HttpContext);
 
             await next();  
             return;
         }
 
-        var (statusCode, clientMessage) = MapProviderCodeToHttp(appCode);
+        var (statusCode, clientMessage) = MapAppCodeToHttpStatus(appCode);
         
         error.TryGetProviderCode(out var providerCode);
         
@@ -41,12 +44,13 @@ public class ResultToActionResultFilter : IAsyncResultFilter
             clientMessage,
             detail: error.Message,
             providerCode,
-            appCode.ToString());
+            appCode.ToString(),
+            context.HttpContext);
         
         await next();  
     }
 
-    private static (int StatusCode, string ClientMessage) MapProviderCodeToHttp(AppErrorCode code)
+    private static (int StatusCode, string ClientMessage) MapAppCodeToHttpStatus(AppErrorCode code)
         => code switch
         {
             AppErrorCode.LocationNotFound =>
@@ -76,14 +80,18 @@ public class ResultToActionResultFilter : IAsyncResultFilter
         string title,
         string detail,
         string? providerCode,
-        string? serviceCode)
+        string? serviceCode,
+        HttpContext httpContext)
     {
         var problem = new ProblemDetails
         {
             Status = statusCode,
             Title = title,
-            Detail = detail
+            Detail = detail,
+            Instance = httpContext.Request.Path
         };
+        
+        problem.Extensions["traceId"] = httpContext.TraceIdentifier;
 
         if (providerCode is not null)
             problem.Extensions["providerCode"] = providerCode;

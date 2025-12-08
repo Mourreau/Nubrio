@@ -196,7 +196,7 @@ public class WeatherForecastService : IWeatherForecastService
         // 0. Проверка входных данных
         if (string.IsNullOrWhiteSpace(city))
             return Result.Fail(new Error("City cannot be null or whitespace")
-                .WithMetadata("Code", AppErrorCode.EmptyCity)
+                .WithMetadata(ProviderErrorMetadataKeys.ServiceCode, AppErrorCode.EmptyCity)
             );
 
         // 0.5. Проверка на язык

@@ -25,9 +25,9 @@ public static class ExternalErrorMetadataExtensions
         return false;
     }
 
-    public static bool TryGetProviderCode(this IError error, out string providerCode)
+    public static bool TryGetProviderCode(this IError error, out string? providerCode)
     {
-        providerCode = "Unknown provider code";
+        providerCode = null;
 
         if (!error.Metadata.TryGetValue(ProviderErrorMetadataKeys.ProviderCode, out var value))
             return false;
