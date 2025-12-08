@@ -1,6 +1,7 @@
 using System.Globalization;
 using FluentResults;
 using Microsoft.Extensions.Options;
+using Nubrio.Application.Common.Errors;
 using Nubrio.Infrastructure.Options;
 using Nubrio.Infrastructure.Providers.OpenMeteo.DTOs.DailyForecast;
 using Nubrio.Infrastructure.Providers.OpenMeteo.DTOs.DailyForecast.MeanForecast;
@@ -57,7 +58,8 @@ internal sealed class OpenMeteoForecastClient : ExternalApiClientBase<ForecastPr
             return BuildError(
                 $"No forecast found",
                 request.RequestUri!,
-                ErrorCodes.NotFound());
+                ErrorCodes.NotFound(),
+                AppErrorCode.ForecastNotFound);
         }
 
         var validationResult = OpenMeteoResponseValidator.ValidateMean(dto, ErrorCodes);
@@ -67,7 +69,8 @@ internal sealed class OpenMeteoForecastClient : ExternalApiClientBase<ForecastPr
             var error = BuildError(
                 validationResult.Message,
                 request.RequestUri!,
-                validationResult.Code!);
+                validationResult.Code!,
+                AppErrorCode.ProviderBadResponse);
 
             return Result.Fail(error);
         }
@@ -98,7 +101,8 @@ internal sealed class OpenMeteoForecastClient : ExternalApiClientBase<ForecastPr
             return BuildError(
                 $"No forecast found",
                 request.RequestUri!,
-                ErrorCodes.NotFound());
+                ErrorCodes.NotFound(),
+                AppErrorCode.ForecastNotFound);
         }
 
         var validationResult = OpenMeteoResponseValidator.ValidateMean(dto, ErrorCodes);
@@ -108,7 +112,8 @@ internal sealed class OpenMeteoForecastClient : ExternalApiClientBase<ForecastPr
             var error = BuildError(
                 validationResult.Message,
                 request.RequestUri!,
-                validationResult.Code!);
+                validationResult.Code!,
+                AppErrorCode.ProviderBadResponse);
 
             return Result.Fail(error);
         }

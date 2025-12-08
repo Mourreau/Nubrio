@@ -1,7 +1,6 @@
+using FluentResults;
 using Microsoft.AspNetCore.Mvc;
-using Nubrio.Application.DTOs.WeeklyForecast;
 using Nubrio.Application.Interfaces;
-using Nubrio.Application.Validators.Errors;
 using Nubrio.Presentation.DTOs.Response;
 using Nubrio.Presentation.DTOs.Response.WeeklyResponse;
 using Nubrio.Presentation.Mappers;
@@ -77,36 +76,13 @@ public class WeatherController : ControllerBase
         [FromQuery] DateOnly date,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(city))
-            return BadRequest("City cannot be null or whitespace");
-
-        var forecastDateOffset =
-            DateOnly.FromDateTime(_clock.UtcNow.UtcDateTime)
-                .AddMonths(3); // Прогноз погоды может быть сделан до 3-х месяцев вперед
-
-        if (date > forecastDateOffset) return BadRequest($"Date must not be later than {forecastDateOffset}");
-
-        var dailyForecast =
+        var result =
             await _weatherForecastService.GetDailyForecastByDateAsync(city, date, cancellationToken);
 
-        if (dailyForecast.IsFailed)
-        {
-            var firstError = dailyForecast.Errors.First();
-            var code = firstError.Metadata?["Code"] as string;
+        if (result.IsFailed)
+            return FromResult(Result.Fail(result.Errors));
 
-            if (code == ForecastServiceErrorCodes.EmptyCity)
-                return BadRequest(firstError.Message);
-
-            if (code == ForecastServiceErrorCodes.GeocodingNotFound)
-                return NotFound(firstError.Message);
-
-            return Problem(
-                detail: firstError.Message,
-                statusCode: StatusCodes.Status500InternalServerError);
-        }
-
-        var forecastDto = dailyForecast.Value;
-
+        var forecastDto = result.Value;
 
         return Ok(ForecastMapper.ToDailyResponse(forecastDto));
     }
@@ -152,30 +128,18 @@ public class WeatherController : ControllerBase
         [FromRoute] string city,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(city))
-            return BadRequest("City cannot be null or whitespace");
-
-        var weeklyForecast =
+        var result =
             await _weatherForecastService.GetForecastByWeekAsync(city, cancellationToken);
 
-        if (weeklyForecast.IsFailed)
-        {
-            var firstError = weeklyForecast.Errors.First();
-            var code = firstError.Metadata?["Code"] as string;
+        if (result.IsFailed)
+            return FromResult(Result.Fail(result.Errors));
 
-            if (code == ForecastServiceErrorCodes.EmptyCity)
-                return BadRequest(firstError.Message);
-
-            if (code == ForecastServiceErrorCodes.GeocodingNotFound)
-                return NotFound(firstError.Message);
-
-            return Problem(
-                detail: firstError.Message,
-                statusCode: StatusCodes.Status500InternalServerError);
-        }
-
-        var forecastDto = weeklyForecast.Value;
+        var forecastDto = result.Value;
 
         return Ok(ForecastMapper.ToWeeklyResponse(forecastDto));
     }
+
+
+    private static ActionResult FromResult(Result result)
+        => new ObjectResult(result);
 }

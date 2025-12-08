@@ -10,6 +10,9 @@ public abstract class ProviderErrorCodes
     }
 
     public abstract string NotFound();
+    
+    public string UnitsMismatch()
+        => $"{Info.Service}.UnitsMismatch";
 
     public string DeserializationNull()
         => $"{Info.Service}.JsonDeserializationReturnedNull";
@@ -31,4 +34,6 @@ public abstract class ProviderErrorCodes
 
     public string ExternalClientError()
         => $"{Info.Service}.ExternalClientError";
+    
+
 }

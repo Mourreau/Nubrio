@@ -7,12 +7,16 @@ using Nubrio.Infrastructure.Providers.MockProvider.MockGeocoding;
 using Nubrio.Infrastructure.Providers.OpenMeteo.Extensions;
 using Nubrio.Infrastructure.Providers.OpenMeteo.WmoCodes;
 using Nubrio.Infrastructure.Services;
+using Nubrio.Presentation.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddControllers();
+builder.Services.AddControllers(o =>
+{
+    o.Filters.Add<ResultToActionResultFilter>();
+});
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(setupAction =>

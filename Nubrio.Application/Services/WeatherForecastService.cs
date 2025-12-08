@@ -1,9 +1,9 @@
 using FluentResults;
+using Nubrio.Application.Common.Errors;
 using Nubrio.Application.DTOs.CurrentForecast;
 using Nubrio.Application.DTOs.DailyForecast;
 using Nubrio.Application.DTOs.WeeklyForecast;
 using Nubrio.Application.Interfaces;
-using Nubrio.Application.Validators.Errors;
 using Nubrio.Domain.Models;
 using Nubrio.Domain.Models.Weekly;
 
@@ -89,11 +89,22 @@ public class WeatherForecastService : IWeatherForecastService
         // 0. Проверка входных данных
         if (string.IsNullOrWhiteSpace(city))
             return Result.Fail(new Error("City cannot be null or whitespace")
-                .WithMetadata("Code", ForecastServiceErrorCodes.EmptyCity)
+                .WithMetadata("ServiceCode", AppErrorCode.EmptyCity)
             );
 
         // 0.5. Проверка на язык
         var language = _languageResolver.Resolve(city);
+        
+        var forecastDateOffset = DateOnly
+            .FromDateTime(_clock.UtcNow.UtcDateTime)
+            .AddMonths(3);
+
+        if (date > forecastDateOffset)
+        {
+            return Result.Fail(new Error($"Date must not be later than {forecastDateOffset}")
+                .WithMetadata("ServiceCode", AppErrorCode.DateOutOfRange)
+            );
+        }
 
         // 1. Геокодинг
         var geocodingResult = await _geocodingProvider.ResolveAsync(city, language, cancellationToken);
@@ -129,6 +140,7 @@ public class WeatherForecastService : IWeatherForecastService
 
         return Result.Ok(result);
     }
+    
 
     public async Task<Result<WeeklyForecastMeanDto>> GetForecastByWeekAsync(string city,
         CancellationToken cancellationToken)
@@ -184,7 +196,7 @@ public class WeatherForecastService : IWeatherForecastService
         // 0. Проверка входных данных
         if (string.IsNullOrWhiteSpace(city))
             return Result.Fail(new Error("City cannot be null or whitespace")
-                .WithMetadata("Code", ForecastServiceErrorCodes.EmptyCity)
+                .WithMetadata(ProviderErrorMetadataKeys.ServiceCode, AppErrorCode.EmptyCity)
             );
 
         // 0.5. Проверка на язык
