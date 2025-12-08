@@ -8,9 +8,6 @@ public class ForecastProviderErrorCodes(ProviderInfo providerInfo) : ProviderErr
     public string MalformedDailyMean()
         => $"{Info.Service}.MalformedDailyMean";
 
-    public string UnitsMismatch()
-        => $"{Info.Service}.UnitsMismatch";
-
     public string TemperatureOutOfRange()
         => $"{Info.Service}.TemperatureOutOfRange";
 

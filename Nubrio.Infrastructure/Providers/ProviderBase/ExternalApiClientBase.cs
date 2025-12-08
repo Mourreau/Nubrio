@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using FluentResults;
 using Microsoft.Extensions.Options;
+using Nubrio.Application.Common.Errors;
 using Nubrio.Infrastructure.Helpers.Errors.Extensions;
 using Nubrio.Infrastructure.Options;
 using Nubrio.Infrastructure.Providers.ProviderBase.ErrorsCodes;
@@ -16,7 +17,7 @@ internal abstract class ExternalApiClientBase<TErrorCodes>
     protected TErrorCodes ErrorCodes { get; }
     protected HttpClient HttpClient { get; }
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    private readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
@@ -48,12 +49,13 @@ internal abstract class ExternalApiClientBase<TErrorCodes>
 
             await using var s = await response.Content.ReadAsStreamAsync(ct);
 
-            var dto = await JsonSerializer.DeserializeAsync<TDto>(s, JsonOptions, ct);
+            var dto = await JsonSerializer.DeserializeAsync<TDto>(s, _jsonOptions, ct);
             if (dto is null)
                 return BuildError(
                     "Failed to deserialize response from external provider.",
                     request.RequestUri!,
-                    ErrorCodes.DeserializationNull());
+                    ErrorCodes.DeserializationNull(),
+                    AppErrorCode.ProviderBadResponse);
 
             return Result.Ok(dto);
         }
@@ -63,6 +65,7 @@ internal abstract class ExternalApiClientBase<TErrorCodes>
                 "Timeout while calling external provider.",
                 request.RequestUri!,
                 ErrorCodes.Timeout(),
+                AppErrorCode.Timeout,
                 ex);
         }
         catch (HttpRequestException ex)
@@ -71,6 +74,7 @@ internal abstract class ExternalApiClientBase<TErrorCodes>
                 "Network error while calling external provider.",
                 request.RequestUri!,
                 ErrorCodes.NetworkError(),
+                AppErrorCode.ExternalServerError,
                 ex);
         }
         catch (JsonException ex)
@@ -78,25 +82,29 @@ internal abstract class ExternalApiClientBase<TErrorCodes>
             return BuildJsonExceptionError(
                 request.RequestUri!,
                 ErrorCodes.DeserializationException(),
+                AppErrorCode.ProviderBadResponse,
                 ex);
         }
     }
 
-    protected Error BuildError(string message, Uri requestUri, string code)
-        => new Error(message)
+    protected Error BuildError(string message, Uri requestUri, string providerCode, AppErrorCode serviceCode) =>
+        new Error(message)
             .WithProviderContext(Info, requestUri)
-            .WithCode(code);
+            .WithCodes(providerCode, serviceCode);
 
 
     private Error BuildHttpError(HttpResponseMessage response,
         Uri requestUri)
     {
-        var errorCode = response.StatusCode switch
+        var (providerCode, serviceCode) = response.StatusCode switch
         {
-            HttpStatusCode.TooManyRequests => ErrorCodes.TooManyRequests(),
-            >= HttpStatusCode.InternalServerError => ErrorCodes.InternalError(),
-            >= HttpStatusCode.BadRequest => ErrorCodes.ExternalClientError(),
-            _ => ErrorCodes.InternalError()
+            HttpStatusCode.TooManyRequests =>
+                (ErrorCodes.TooManyRequests(), AppErrorCode.TooManyRequests),
+            >= HttpStatusCode.InternalServerError =>
+                (ErrorCodes.InternalError(), AppErrorCode.ExternalServerError),
+            >= HttpStatusCode.BadRequest =>
+                (ErrorCodes.ExternalClientError(), AppErrorCode.ExternalClientError),
+            _ => (ErrorCodes.InternalError(), AppErrorCode.Unknown)
         };
 
         return new Error(
@@ -106,19 +114,25 @@ internal abstract class ExternalApiClientBase<TErrorCodes>
                 requestUri,
                 statusCode: (int)response.StatusCode,
                 providerErrorMessage: response.ReasonPhrase)
-            .WithCode(errorCode);
+            .WithCodes(providerCode, serviceCode);
     }
 
-    private Error BuildExceptionError(string message, Uri requestUri, string code, Exception ex)
-        => new Error(message)
+    private Error BuildExceptionError(
+        string message,
+        Uri requestUri,
+        string providerCode,
+        AppErrorCode serviceCode,
+        Exception ex) =>
+        new Error(message)
             .CausedBy(ex)
             .WithProviderContext(Info, requestUri)
-            .WithCode(code);
+            .WithCodes(providerCode, serviceCode);
 
-    private Error BuildJsonExceptionError(Uri requestUri, string code, JsonException ex)
-        => new Error("Failed to deserialize response from external provider.")
+    private Error BuildJsonExceptionError(Uri requestUri, string providerCode, AppErrorCode serviceCode,
+        JsonException ex) =>
+        new Error("Failed to deserialize response from external provider.")
             .CausedBy(ex)
             .WithProviderContext(Info, requestUri)
-            .WithCode(code)
+            .WithCodes(providerCode, serviceCode)
             .WithJsonException(ex);
 }
