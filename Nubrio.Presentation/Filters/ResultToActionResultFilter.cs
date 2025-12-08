@@ -88,7 +88,7 @@ public class ResultToActionResultFilter : IAsyncResultFilter
             Status = statusCode,
             Title = title,
             Detail = detail,
-            Instance = httpContext.Request.Path
+            Instance = Uri.UnescapeDataString(httpContext.Request.Path)
         };
         
         problem.Extensions["traceId"] = httpContext.TraceIdentifier;
@@ -104,4 +104,7 @@ public class ResultToActionResultFilter : IAsyncResultFilter
             StatusCode = statusCode
         };
     }
+    
+    
+
 }
