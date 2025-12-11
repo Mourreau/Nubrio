@@ -73,7 +73,8 @@ public class GetDailyForecastByDateAsyncTests
             dateOnly,
             geocodingData.LocationId,
             enumCondition,
-            temperature
+            temperature,
+            fixedNowUtc
         );
 
         _weatherProviderMock.Setup(provider =>
@@ -106,10 +107,10 @@ public class GetDailyForecastByDateAsyncTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         dto.City.Should().Be(city);
-        dto.Conditions[0].Should().Be(conditionNormalized);
-        dto.TemperaturesMean[0].Should().Be(temperature);
+        dto.Condition.Should().Be(conditionNormalized);
+        dto.TemperatureMean.Should().Be(temperature);
 
-        dto.Dates[0].Should().Be(dateOnly);
+        dto.Date.Should().Be(dateOnly);
         dto.FetchedAt.Should().Be(expectedFetchedLocal);
 
         _geocodingServiceMock.Verify(x => x.ResolveAsync(city, "en", It.IsAny<CancellationToken>()), Times.Once);
@@ -120,9 +121,9 @@ public class GetDailyForecastByDateAsyncTests
         _conditionStringMapperMock.Verify(x => x.From(enumCondition), Times.Once);
         _languageResolverMock.Verify(x => x.Resolve(city), Times.Once);
 
-        _testOutputHelper.WriteLine($"condition: {result.Value.Conditions[0]}");
+        _testOutputHelper.WriteLine($"condition: {result.Value.Condition[0]}");
         _testOutputHelper.WriteLine($"city: {result.Value.City}");
-        _testOutputHelper.WriteLine($"temperature: {result.Value.TemperaturesMean[0]}");
+        _testOutputHelper.WriteLine($"temperature: {result.Value.TemperatureMean}");
         _testOutputHelper.WriteLine($"fetch time: {result.Value.FetchedAt}");
     }
 
@@ -159,8 +160,11 @@ public class GetDailyForecastByDateAsyncTests
     {
         // Arrange 
         const string city = "MockCity";
-        var dateOnly = DateOnly.Parse("2020-10-20");
+        var dateOnly = DateOnly.Parse("2025-11-20");
 
+        _clockMock.Setup(c => c.UtcNow).Returns(DateTime.Parse("2025-11-20"));
+            
+            
         // 1. Геокодинг - с ошибкой
         _languageResolverMock.Setup(l => l.Resolve(city)).Returns("en");
 
@@ -190,7 +194,7 @@ public class GetDailyForecastByDateAsyncTests
     {
         // Arrange
         var dateOnly = DateOnly.Parse(date);
-
+        _clockMock.Setup(c => c.UtcNow).Returns(DateTime.Parse(date));
 
         // 1. Геокодинг - правильный
         var geocodingData = GetValidGeocodingData(city, timeZoneIana);
@@ -212,7 +216,7 @@ public class GetDailyForecastByDateAsyncTests
 
         _timeZoneResolverMock.Verify(x => x.GetTimeZoneInfoById(timeZoneIana), Times.Never);
         _conditionStringMapperMock.Verify(x => x.From(enumCondition), Times.Never);
-        _clockMock.Verify(x => x.UtcNow, Times.Never);
+        _clockMock.Verify(x => x.UtcNow, Times.Once);
     }
 
     [Theory]
@@ -223,6 +227,9 @@ public class GetDailyForecastByDateAsyncTests
     {
         // Arrange
         var dateOnly = DateOnly.Parse(date);
+        var fixedNowUtc = new DateTimeOffset(2025, 10, 1, 12, 00, 00, TimeSpan.Zero); // системные «сейчас»
+
+        _clockMock.Setup(c => c.UtcNow).Returns(fixedNowUtc);
 
         // 1. Геокодинг - правильный
         var geocodingData = GetValidGeocodingData(city, timeZoneIana);
@@ -234,7 +241,8 @@ public class GetDailyForecastByDateAsyncTests
             dateOnly,
             geocodingData.LocationId,
             enumCondition,
-            temperature
+            temperature,
+            fixedNowUtc
         );
 
         _weatherProviderMock.Setup(provider =>
@@ -256,7 +264,7 @@ public class GetDailyForecastByDateAsyncTests
 
 
         _timeZoneResolverMock.Verify(x => x.GetTimeZoneInfoById(It.IsAny<string>()), Times.Once);
-        _clockMock.Verify(x => x.UtcNow, Times.Never);
+        _clockMock.Verify(x => x.UtcNow, Times.Once);
         _conditionStringMapperMock.Verify(x => x.From(It.IsAny<WeatherConditions>()), Times.Never);
     }
 

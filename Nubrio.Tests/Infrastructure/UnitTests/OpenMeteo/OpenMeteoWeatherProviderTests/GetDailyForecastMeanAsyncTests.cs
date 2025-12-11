@@ -2,13 +2,13 @@ using System.Globalization;
 using FluentAssertions;
 using FluentResults;
 using Moq;
+using Nubrio.Application.Common.Errors;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Enums;
 using Nubrio.Domain.Models;
 using Nubrio.Infrastructure.Clients.ForecastClient;
 using Nubrio.Infrastructure.Providers.OpenMeteo.DTOs.DailyForecast.MeanForecast;
 using Nubrio.Infrastructure.Providers.OpenMeteo.OpenMeteoForecast;
-using Nubrio.Infrastructure.Providers.OpenMeteo.Validators.Errors;
 using Nubrio.Tests.Infrastructure.UnitTests.OpenMeteo.TestData.OpenMeteoWeatherProviderTestData;
 using Xunit.Abstractions;
 
@@ -20,7 +20,10 @@ public class GetDailyForecastMeanAsyncTests
     private readonly IForecastProvider _forecastProvider;
 
     private readonly Mock<IForecastClient> _openMeteoClientMock;
+    private readonly Mock<IClock> _clockMock;
     private readonly Mock<IWeatherCodeTranslator> _weatherCodeTranslatorMock;
+
+    private const string ProviderCode = "ServiceCode";
 
     public GetDailyForecastMeanAsyncTests(ITestOutputHelper testOutputHelper)
     {
@@ -28,9 +31,11 @@ public class GetDailyForecastMeanAsyncTests
         _openMeteoClientMock = new Mock<IForecastClient>();
         _weatherCodeTranslatorMock = new Mock<IWeatherCodeTranslator>();
 
+        _clockMock = new Mock<IClock>();
         _forecastProvider = new OpenMeteoForecastProvider(
             _openMeteoClientMock.Object,
-            _weatherCodeTranslatorMock.Object);
+            _weatherCodeTranslatorMock.Object,
+            _clockMock.Object);
     }
 
     [Theory]
@@ -85,138 +90,140 @@ public class GetDailyForecastMeanAsyncTests
     }
 
 
-    [Fact]
-    public async Task GetDailyForecastMean_WhenDailyArraysEmpty_ReturnsFail()
-    {
-        // Arrange
-        var dateString = "2025-10-20";
-        var date = DateOnly.Parse(dateString, CultureInfo.InvariantCulture);
-        var id = Guid.NewGuid();
-        var weatherCode = 47;
+    // [Fact]
+    // public async Task GetDailyForecastMean_WhenDailyArraysEmpty_ReturnsFail()
+    // {
+    //     // Arrange
+    //     var dateString = "2025-10-20";
+    //     var date = DateOnly.Parse(dateString, CultureInfo.InvariantCulture);
+    //     var id = Guid.NewGuid();
+    //     var weatherCode = 47;
+    //
+    //
+    //     var testLocation = MakeLocation(id);
+    //
+    //     var clientResponse = MakeClientResponseDto([], [], []);
+    //
+    //     _openMeteoClientMock.Setup(client =>
+    //         client.GetOpenMeteoDailyMeanAsync(
+    //             testLocation.Coordinates.Latitude,
+    //             testLocation.Coordinates.Longitude,
+    //             date,
+    //             It.IsAny<CancellationToken>())).ReturnsAsync(Result.Ok(clientResponse));
+    //
+    //
+    //     // Act
+    //     var result = await _forecastProvider.GetDailyForecastMeanAsync(testLocation, date, CancellationToken.None);
+    //
+    //     // Assert
+    //     result.IsFailed.Should().BeTrue();
+    //     result.Errors.Should().Contain(e =>
+    //         e.Metadata != null
+    //         && e.Metadata.ContainsKey(ProviderCode)
+    //         && ((AppErrorCode)e.Metadata[ProviderCode] == AppErrorCode.ProviderBadResponse));
+    //
+    //     _weatherCodeTranslatorMock.Verify(translator => translator.Translate(weatherCode), Times.Never);
+    //     _openMeteoClientMock.Verify(c => c.GetOpenMeteoDailyMeanAsync(
+    //         testLocation.Coordinates.Latitude,
+    //         testLocation.Coordinates.Longitude,
+    //         date,
+    //         It.IsAny<CancellationToken>()), Times.Once);
+    // } // TODO: Перенести в ForecastClientTests для тестирования валидации
 
 
-        var testLocation = MakeLocation(id);
+    // [Theory]
+    // [MemberData(
+    //     nameof(GetDailyForecastMeanAsyncTestData.NotEqualArrays),
+    //     MemberType = typeof(GetDailyForecastMeanAsyncTestData))]
+    // public async Task GetDailyForecastMean_WhenDailyArraysNotEqual_ReturnsFail(List<string> dates, List<double> temps,
+    //     List<int> codes)
+    // {
+    //     // Arrange
+    //     var date = DateOnly.Parse(dates[0], CultureInfo.InvariantCulture);
+    //     var id = Guid.NewGuid();
+    //
+    //
+    //     var testLocation = MakeLocation(id);
+    //
+    //     var clientResponse = MakeClientResponseDto(dates, temps, codes);
+    //
+    //
+    //     _openMeteoClientMock.Setup(client =>
+    //         client.GetOpenMeteoDailyMeanAsync(
+    //             testLocation.Coordinates.Latitude,
+    //             testLocation.Coordinates.Longitude,
+    //             date,
+    //             It.IsAny<CancellationToken>())).ReturnsAsync(Result.Ok(clientResponse));
+    //
+    //
+    //     // Act
+    //     var result = await _forecastProvider.GetDailyForecastMeanAsync(testLocation, date, CancellationToken.None);
+    //
+    //     // Assert
+    //     result.IsFailed.Should().BeTrue();
+    //     result.Errors.Should().Contain(e =>
+    //         e.Metadata != null
+    //         && e.Metadata.ContainsKey(ProviderCode)
+    //         && ((AppErrorCode)e.Metadata[ProviderCode] == AppErrorCode.ProviderBadResponse));
+    //
+    //     _weatherCodeTranslatorMock.Verify(translator => translator.Translate(codes[0]), Times.Never);
+    //     _openMeteoClientMock.Verify(c => c.GetOpenMeteoDailyMeanAsync(
+    //         testLocation.Coordinates.Latitude,
+    //         testLocation.Coordinates.Longitude,
+    //         date,
+    //         It.IsAny<CancellationToken>()), Times.Once);
+    //
+    //     _testOutputHelper.WriteLine(result.Errors[0].Message);
+    // } // TODO: Перенести в ForecastClientTests для тестирования валидации
 
-        var clientResponse = MakeClientResponseDto([], [], []);
-
-        _openMeteoClientMock.Setup(client =>
-            client.GetOpenMeteoDailyMeanAsync(
-                testLocation.Coordinates.Latitude,
-                testLocation.Coordinates.Longitude,
-                date,
-                It.IsAny<CancellationToken>())).ReturnsAsync(Result.Ok(clientResponse));
-
-
-        // Act
-        var result = await _forecastProvider.GetDailyForecastMeanAsync(testLocation, date, CancellationToken.None);
-
-        // Assert
-        result.IsFailed.Should().BeTrue();
-        result.Errors.Should().Contain(e =>
-            e.Metadata != null
-            && e.Metadata.ContainsKey("Code")
-            && (e.Metadata["Code"].ToString() == OpenMeteoErrorCodes.MalformedDailyMean));
-
-        _weatherCodeTranslatorMock.Verify(translator => translator.Translate(weatherCode), Times.Never);
-        _openMeteoClientMock.Verify(c => c.GetOpenMeteoDailyMeanAsync(
-            testLocation.Coordinates.Latitude,
-            testLocation.Coordinates.Longitude,
-            date,
-            It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-
-    [Theory]
-    [MemberData(
-        nameof(GetDailyForecastMeanAsyncTestData.NotEqualArrays),
-        MemberType = typeof(GetDailyForecastMeanAsyncTestData))]
-    public async Task GetDailyForecastMean_WhenDailyArraysNotEqual_ReturnsFail(List<string> dates, List<double> temps,
-        List<int> codes)
-    {
-        // Arrange
-        var date = DateOnly.Parse(dates[0], CultureInfo.InvariantCulture);
-        var id = Guid.NewGuid();
-
-
-        var testLocation = MakeLocation(id);
-
-        var clientResponse = MakeClientResponseDto(dates, temps, codes);
-
-
-        _openMeteoClientMock.Setup(client =>
-            client.GetOpenMeteoDailyMeanAsync(
-                testLocation.Coordinates.Latitude,
-                testLocation.Coordinates.Longitude,
-                date,
-                It.IsAny<CancellationToken>())).ReturnsAsync(Result.Ok(clientResponse));
-
-
-        // Act
-        var result = await _forecastProvider.GetDailyForecastMeanAsync(testLocation, date, CancellationToken.None);
-
-        // Assert
-        result.IsFailed.Should().BeTrue();
-        result.Errors.Should().Contain(e =>
-            e.Metadata != null
-            && e.Metadata.ContainsKey("Code")
-            && (e.Metadata["Code"].ToString() == OpenMeteoErrorCodes.MalformedDailyMean));
-
-        _weatherCodeTranslatorMock.Verify(translator => translator.Translate(codes[0]), Times.Never);
-        _openMeteoClientMock.Verify(c => c.GetOpenMeteoDailyMeanAsync(
-            testLocation.Coordinates.Latitude,
-            testLocation.Coordinates.Longitude,
-            date,
-            It.IsAny<CancellationToken>()), Times.Once);
-
-        _testOutputHelper.WriteLine(result.Errors[0].Message);
-    }
-
-    [Theory]
-    [MemberData(
-        nameof(GetDailyForecastMeanAsyncTestData.TwoElementsInArray),
-        MemberType = typeof(GetDailyForecastMeanAsyncTestData))]
-    public async Task GetDailyForecastMean_WhenDailyArraysContainsMoreThenOneElement_ReturnsFail(
-        List<string> dates,
-        List<double> temps,
-        List<int> codes)
-    {
-        // Arrange
-        var date = DateOnly.Parse(dates[0], CultureInfo.InvariantCulture);
-        var id = Guid.NewGuid();
-
-
-        var testLocation = MakeLocation(id);
-
-        var clientResponse = MakeClientResponseDto(dates, temps, codes);
-
-
-        _openMeteoClientMock.Setup(client =>
-            client.GetOpenMeteoDailyMeanAsync(
-                testLocation.Coordinates.Latitude,
-                testLocation.Coordinates.Longitude,
-                date,
-                It.IsAny<CancellationToken>())).ReturnsAsync(Result.Ok(clientResponse));
-
-
-        // Act
-        var result = await _forecastProvider.GetDailyForecastMeanAsync(testLocation, date, CancellationToken.None);
-
-        // Assert
-        result.IsFailed.Should().BeTrue();
-        result.Errors.Should().Contain(e =>
-            e.Metadata != null
-            && e.Metadata.ContainsKey("Code")
-            && (e.Metadata["Code"].ToString() == OpenMeteoErrorCodes.MalformedDailyMean));
-
-        _weatherCodeTranslatorMock.Verify(translator => translator.Translate(codes[0]), Times.Never);
-        _openMeteoClientMock.Verify(c => c.GetOpenMeteoDailyMeanAsync(
-            testLocation.Coordinates.Latitude,
-            testLocation.Coordinates.Longitude,
-            date,
-            It.IsAny<CancellationToken>()), Times.Once);
-
-        _testOutputHelper.WriteLine($"Error is: {result.Errors[0].Message}");
-    }
+    // [Theory]
+    // [MemberData(
+    //     nameof(GetDailyForecastMeanAsyncTestData.TwoElementsInArray),
+    //     MemberType = typeof(GetDailyForecastMeanAsyncTestData))]
+    // public async Task GetDailyForecastMean_WhenDailyArraysContainsMoreThenOneElement_ReturnsFail(
+    //     List<string> dates,
+    //     List<double> temps,
+    //     List<int> codes)
+    // {
+    //     // Arrange
+    //     var date = DateOnly.Parse(dates[0], CultureInfo.InvariantCulture);
+    //     var id = Guid.NewGuid();
+    //
+    //
+    //     var testLocation = MakeLocation(id);
+    //
+    //     var clientResponse = MakeClientResponseDto(dates, temps, codes);
+    //
+    //
+    //     _openMeteoClientMock.Setup(client =>
+    //             client.GetOpenMeteoDailyMeanAsync(
+    //                 testLocation.Coordinates.Latitude,
+    //                 testLocation.Coordinates.Longitude,
+    //                 date,
+    //                 It.IsAny<CancellationToken>()))
+    //         .ReturnsAsync(Result.Fail("Daily arrays in daily forecast have more than one element"));
+    //
+    //
+    //     // Act
+    //     var result = await _forecastProvider.GetDailyForecastMeanAsync(testLocation, date, CancellationToken.None);
+    //
+    //     // Assert
+    //     result.IsFailed.Should().BeTrue();
+    //     result.Errors.Should().Contain(e =>
+    //         e.Metadata != null
+    //         && e.Metadata.ContainsKey(ProviderCode)
+    //         && ((AppErrorCode)e.Metadata[ProviderCode] == AppErrorCode.ProviderBadResponse));
+    //
+    //     _weatherCodeTranslatorMock.Verify(translator => translator.Translate(codes[0]), Times.Never);
+    //     _openMeteoClientMock.Verify(c => c.GetOpenMeteoDailyMeanAsync(
+    //         testLocation.Coordinates.Latitude,
+    //         testLocation.Coordinates.Longitude,
+    //         date,
+    //         It.IsAny<CancellationToken>()), Times.Once);
+    //
+    //     _testOutputHelper.WriteLine($"Error is: {result.Errors[0].Message}");
+    // } // TODO: Перенести в ForecastClientTests для тестирования валидации
+    
 
 
     #region Heplers
