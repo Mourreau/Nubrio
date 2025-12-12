@@ -12,6 +12,6 @@ public interface IWeatherForecastService
     Task<Result<DailyForecastMeanDto>> GetDailyForecastByDateAsync(
         string city, DateOnly date, CancellationToken cancellationToken);
 
-    Task<Result<WeeklyForecastMeanDto>> GetForecastByWeekAsync(
+    Task<Result<WeeklyForecastMeanDto>> GetWeeklyForecastAsync(
         string city, CancellationToken cancellationToken);
 }

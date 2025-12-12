@@ -142,7 +142,7 @@ public class WeatherForecastService : IWeatherForecastService
     }
     
 
-    public async Task<Result<WeeklyForecastMeanDto>> GetForecastByWeekAsync(string city,
+    public async Task<Result<WeeklyForecastMeanDto>> GetWeeklyForecastAsync(string city,
         CancellationToken cancellationToken)
     {
         // 1. Геокодинг
