@@ -129,7 +129,7 @@ public class WeatherController : ControllerBase
         CancellationToken cancellationToken)
     {
         var result =
-            await _weatherForecastService.GetForecastByWeekAsync(city, cancellationToken);
+            await _weatherForecastService.GetWeeklyForecastAsync(city, cancellationToken);
 
         if (result.IsFailed)
             return FromResult(Result.Fail(result.Errors));
