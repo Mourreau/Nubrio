@@ -4,6 +4,7 @@ using FluentResults;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Models;
 using Nubrio.Domain.Models.Daily;
+using Nubrio.Domain.Models.Weekly;
 using Nubrio.Infrastructure.Helpers;
 using Nubrio.Infrastructure.Providers.OpenMeteo.DTOs.CurrentForecast;
 
@@ -69,5 +70,9 @@ public class MockForecastProvider : IForecastProvider
             }
         }
     }
-    
+
+    public Task<Result<WeeklyForecastMean>> GetWeeklyForecastMeanAsync(Location location, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
 }

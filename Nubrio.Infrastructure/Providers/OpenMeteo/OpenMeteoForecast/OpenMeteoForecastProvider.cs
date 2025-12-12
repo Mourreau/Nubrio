@@ -14,17 +14,23 @@ public class OpenMeteoForecastProvider : IForecastProvider
 {
     private readonly IWeatherCodeTranslator _weatherCodeTranslator;
     private readonly IForecastClient _client;
+    private readonly IClock _clock;
 
 
-    public OpenMeteoForecastProvider(IForecastClient client, IWeatherCodeTranslator weatherCodeTranslator)
+    public OpenMeteoForecastProvider(IForecastClient client, 
+        IWeatherCodeTranslator weatherCodeTranslator, 
+        IClock clock)
     {
         _weatherCodeTranslator = weatherCodeTranslator;
+        _clock = clock;
         _client = client;
     }
 
     public async Task<Result<DailyForecastMean>> GetDailyForecastMeanAsync(Location location, DateOnly date,
         CancellationToken cancellationToken)
     {
+        var fetchedAtUtc = _clock.UtcNow;
+        
         var clientResponse = await _client.GetOpenMeteoDailyMeanAsync(
             location.Coordinates.Latitude,
             location.Coordinates.Longitude,
@@ -38,7 +44,7 @@ public class OpenMeteoForecastProvider : IForecastProvider
         var openMeteoResponseDto = clientResponse.Value;
 
 
-        var result = MapToDomainModelDailyForecastMean(openMeteoResponseDto, location);
+        var result = MapToDomainModelDailyForecastMean(openMeteoResponseDto, location, fetchedAtUtc);
 
         return Result.Ok(result);
     }
@@ -52,6 +58,8 @@ public class OpenMeteoForecastProvider : IForecastProvider
     public async Task<Result<WeeklyForecastMean>> GetWeeklyForecastMeanAsync(Location location,
         CancellationToken cancellationToken)
     {
+        var fetchedAtUtc = _clock.UtcNow;
+        
         var clientResponse = await _client.GetOpenMeteoWeeklyMeanAsync(
             location.Coordinates.Latitude,
             location.Coordinates.Longitude,
@@ -62,7 +70,7 @@ public class OpenMeteoForecastProvider : IForecastProvider
 
         var openMeteoResponseDto = clientResponse.Value;
 
-        var result = MapToDomainModelWeeklyForecastMean(openMeteoResponseDto, location);
+        var result = MapToDomainModelWeeklyForecastMean(openMeteoResponseDto, location, fetchedAtUtc);
 
         return Result.Ok(result);
     }
@@ -73,7 +81,9 @@ public class OpenMeteoForecastProvider : IForecastProvider
     #region Mappers
 
     private DailyForecastMean MapToDomainModelDailyForecastMean(
-        OpenMeteoDailyMeanResponseDto openMeteoResponseDto, Location location)
+        OpenMeteoDailyMeanResponseDto openMeteoResponseDto, 
+        Location location,
+        DateTimeOffset fetchedAtUtc)
     {
         // Здесь конкретно указан [0] элемент листа т.к. в данном контексте элемент будет только один.
         const int index = 0;
@@ -88,7 +98,8 @@ public class OpenMeteoForecastProvider : IForecastProvider
             dateTranslate,
             location.LocationId,
             _weatherCodeTranslator.Translate(openMeteoResponseDto.Daily.WeatherCode[index]),
-            openMeteoResponseDto.Daily.Temperature2mMean[index]
+            openMeteoResponseDto.Daily.Temperature2mMean[index],
+            fetchedAtUtc
             // Берем [0] элемент листа. Прогноз на одну дату и значение в листе тоже будет одно.
         );
 
@@ -97,7 +108,9 @@ public class OpenMeteoForecastProvider : IForecastProvider
 
 
     private WeeklyForecastMean MapToDomainModelWeeklyForecastMean(
-        OpenMeteoWeeklyMeanResponseDto openMeteoResponseDto, Location location)
+        OpenMeteoWeeklyMeanResponseDto openMeteoResponseDto, 
+        Location location,
+        DateTimeOffset fetchedAtUtc)
     {
         var count = openMeteoResponseDto.Daily.Temperature2mMean.Count;
         var daily = new DailyForecastMean[count];
@@ -114,11 +127,12 @@ public class OpenMeteoForecastProvider : IForecastProvider
                 dateTranslate,
                 location.LocationId,
                 _weatherCodeTranslator.Translate(openMeteoResponseDto.Daily.WeatherCode[i]),
-                openMeteoResponseDto.Daily.Temperature2mMean[i]
+                openMeteoResponseDto.Daily.Temperature2mMean[i],
+                fetchedAtUtc
             );
         }
 
-        return new WeeklyForecastMean(daily);
+        return new WeeklyForecastMean(daily, fetchedAtUtc);
     }
 
     #endregion

@@ -6,11 +6,14 @@ public class WeeklyForecastMean
 {
     
     public DailyForecastMean[] DailyForecasts { get; }
+    public DateTimeOffset FetchedAtUtc { get; }
     
     
-    public WeeklyForecastMean(DailyForecastMean[] dailyForecasts)
+    public WeeklyForecastMean(DailyForecastMean[] dailyForecasts, DateTimeOffset fetchedAtUtc)
     {
         DailyForecasts = dailyForecasts;
+        FetchedAtUtc = fetchedAtUtc;
     }
+    
 
 }
