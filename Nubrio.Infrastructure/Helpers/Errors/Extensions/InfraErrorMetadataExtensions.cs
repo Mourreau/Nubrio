@@ -1,5 +1,6 @@
 using System.Text.Json;
 using FluentResults;
+using Nubrio.Application.Common.Errors;
 using Nubrio.Infrastructure.Providers.ProviderBase;
 
 namespace Nubrio.Infrastructure.Helpers.Errors.Extensions;
@@ -11,8 +12,10 @@ namespace Nubrio.Infrastructure.Helpers.Errors.Extensions;
 /// </summary>
 internal static class InfraErrorMetadataExtensions
 {
-    public static Error WithCode(this Error error, string code)
-        => error.WithMetadata(ProviderErrorMetadataKeys.Code, code);
+    public static Error WithCodes(this Error error, string providerCode, AppErrorCode serviceCode)
+        => error.WithMetadata(ProviderErrorMetadataKeys.ProviderCode, providerCode)
+            .WithMetadata(ProviderErrorMetadataKeys.ServiceCode, serviceCode);
+
 
     public static Error WithJsonException(this Error error, JsonException ex)
         => error.WithMetadata("ExceptionMessage", ex.Message)

@@ -2,13 +2,13 @@ using FluentAssertions;
 using FluentResults;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Nubrio.Application.Common.Errors;
 using Nubrio.Application.DTOs.DailyForecast;
 using Nubrio.Application.Interfaces;
-using Nubrio.Application.Validators.Errors;
 using Nubrio.Presentation.Controllers;
 using Nubrio.Presentation.DTOs.Response;
 
-namespace Nubrio.Tests.Presentation.ControllersTests.WeatherControllerTests;
+namespace Nubrio.Tests.Presentation.ControllersTests.UnitTests.WeatherControllerTests;
 
 public class GetDailyForecastByCityTests
 {
@@ -77,6 +77,12 @@ public class GetDailyForecastByCityTests
     {
         // Arrange 
         var dateOnly = DateOnly.Parse("2020-10-20");
+        var returnResult = Result.Fail(new Error("City cannot be null or whitespace")
+            .WithMetadata(ProviderErrorMetadataKeys.ServiceCode, AppErrorCode.EmptyCity));
+
+        _weatherForecastServiceMock
+            .Setup(s => s.GetDailyForecastByDateAsync(emptyCity, dateOnly, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(returnResult);
 
         // Act
         var actionResult = await _controller.GetDailyForecastByCity(emptyCity, dateOnly, CancellationToken.None);
@@ -126,7 +132,7 @@ public class GetDailyForecastByCityTests
         const string city = "Valid City";
         var dateOnly = DateOnly.Parse("2025-02-11");
         var cityIsEmptyError = new Error("City cannot be null or whitespace")
-            .WithMetadata("Code", ForecastServiceErrorCodes.EmptyCity);
+            .WithMetadata(ProviderErrorMetadataKeys.ServiceCode, AppErrorCode.EmptyCity);
 
         _weatherForecastServiceMock
             .Setup(s => s.GetDailyForecastByDateAsync(city, dateOnly, It.IsAny<CancellationToken>()))
@@ -154,7 +160,7 @@ public class GetDailyForecastByCityTests
         const string city = "Valid City";
         var dateOnly = DateOnly.Parse("2025-02-11");
         var internalError = new Error("Some internal error")
-            .WithMetadata("Code", ForecastServiceErrorCodes.InternalError);
+            .WithMetadata(ProviderErrorMetadataKeys.ServiceCode, AppErrorCode.ExternalServerError);
 
         _weatherForecastServiceMock
             .Setup(s => s.GetDailyForecastByDateAsync(city, dateOnly, It.IsAny<CancellationToken>()))
@@ -179,16 +185,16 @@ public class GetDailyForecastByCityTests
 
     #region Helpers
 
-    private DailyForecastDto GetWeatherForecastServiceDto(string city, DateOnly dateOnly, string condition,
+    private DailyForecastMeanDto GetWeatherForecastServiceDto(string city, DateOnly dateOnly, string condition,
         double tempMean)
     {
-        return new DailyForecastDto
+        return new DailyForecastMeanDto
         {
             City = city,
-            Dates = [dateOnly],
-            Conditions = [condition],
+            Date = dateOnly,
+            Condition = condition,
             FetchedAt = new DateTimeOffset(dateOnly.Year, dateOnly.Month, dateOnly.Day, 12, 0, 0, TimeSpan.Zero),
-            TemperaturesMean = [tempMean]
+            TemperatureMean = tempMean
         };
     }
 

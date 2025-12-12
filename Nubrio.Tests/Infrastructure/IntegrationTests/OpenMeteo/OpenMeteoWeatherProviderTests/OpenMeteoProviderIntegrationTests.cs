@@ -6,9 +6,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Models;
 using Nubrio.Infrastructure.Clients.ForecastClient;
+using Nubrio.Infrastructure.Options;
 using Nubrio.Infrastructure.Providers.OpenMeteo.Extensions;
-using Nubrio.Infrastructure.Providers.OpenMeteo.Validators.Errors;
 using Nubrio.Infrastructure.Providers.OpenMeteo.WmoCodes;
+using Nubrio.Infrastructure.Providers.ProviderBase;
+using Nubrio.Infrastructure.Providers.ProviderBase.ErrorsCodes;
 using Nubrio.Infrastructure.Services;
 using Nubrio.Tests.Infrastructure.IntegrationTests.Clients;
 
@@ -18,6 +20,7 @@ public class OpenMeteoProviderIntegrationTests
 {
     private const string ForecastBaseUrl = "https://api.test.forecast/";
     private const string GeocodeBaseUrl = "https://api.test.geocode/";
+    
 
     private static ServiceProvider BuildProvider(HttpMessageHandler handler, string forecastBaseUri,
         string? geocodingBaseUri, int timeoutSeconds = 5)
@@ -113,8 +116,8 @@ public class OpenMeteoProviderIntegrationTests
         // Assert
         handler.Calls.Should().Be(1);
         result.IsFailed.Should().BeTrue();
-        result.Errors.Select(e => e.Metadata?["Code"] as string)
-            .Should().Contain(OpenMeteoErrorCodes.UnitsMismatch);
+        result.Errors.Select(e => e.Metadata?["ProviderCode"] as string)
+            .Should().Contain("Forecast.UnitsMismatch");
     }
 
 

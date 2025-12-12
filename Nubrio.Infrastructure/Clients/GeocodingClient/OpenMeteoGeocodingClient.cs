@@ -1,6 +1,7 @@
 using System.Globalization;
 using FluentResults;
 using Microsoft.Extensions.Options;
+using Nubrio.Application.Common.Errors;
 using Nubrio.Infrastructure.Options;
 using Nubrio.Infrastructure.Providers.OpenMeteo.OpenMeteoGeocoding.DTOs;
 using Nubrio.Infrastructure.Providers.ProviderBase;
@@ -44,7 +45,8 @@ internal sealed class OpenMeteoGeocodingClient : ExternalApiClientBase<Geocoding
             return BuildError(
                 $"No location found for city '{city}'",
                 request.RequestUri!,
-                ErrorCodes.NotFound());
+                ErrorCodes.NotFound(),
+                AppErrorCode.LocationNotFound);
         }
 
         return Result.Ok(dto);

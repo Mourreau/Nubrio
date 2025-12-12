@@ -3,9 +3,10 @@ using FluentResults;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Models;
 using Nubrio.Domain.Models.Daily;
+using Nubrio.Domain.Models.Weekly;
 using Nubrio.Infrastructure.Clients.ForecastClient;
 using Nubrio.Infrastructure.Providers.OpenMeteo.DTOs.DailyForecast.MeanForecast;
-using Nubrio.Infrastructure.Providers.OpenMeteo.Validators;
+using Nubrio.Infrastructure.Providers.OpenMeteo.DTOs.WeeklyForecast;
 
 namespace Nubrio.Infrastructure.Providers.OpenMeteo.OpenMeteoForecast;
 
@@ -36,19 +37,6 @@ public class OpenMeteoForecastProvider : IForecastProvider
 
         var openMeteoResponseDto = clientResponse.Value;
 
-        var validationResult = OpenMeteoResponseValidator.ValidateMean(openMeteoResponseDto);
-        if (validationResult.IsFailed)
-        {
-            var error = new Error(validationResult.Message);
-            if (!string.IsNullOrEmpty(validationResult.Code))
-                error = error.WithMetadata("Code", validationResult.Code);
-
-            return Result.Fail(error);
-        }
-
-
-        if (validationResult.WeatherElements != 1)
-            return Result.Fail("Weather elements out of range. Expected 1 element.");
 
         var result = MapToDomainModelDailyForecastMean(openMeteoResponseDto, location);
 
@@ -61,8 +49,29 @@ public class OpenMeteoForecastProvider : IForecastProvider
         return Result.Fail($"{nameof(GetCurrentForecastAsync)} is not implemented");
     }
 
+    public async Task<Result<WeeklyForecastMean>> GetWeeklyForecastMeanAsync(Location location,
+        CancellationToken cancellationToken)
+    {
+        var clientResponse = await _client.GetOpenMeteoWeeklyMeanAsync(
+            location.Coordinates.Latitude,
+            location.Coordinates.Longitude,
+            cancellationToken);
+
+        if (clientResponse.IsFailed)
+            return Result.Fail(clientResponse.Errors);
+
+        var openMeteoResponseDto = clientResponse.Value;
+
+        var result = MapToDomainModelWeeklyForecastMean(openMeteoResponseDto, location);
+
+        return Result.Ok(result);
+    }
+
 
     // -------------------------------------------------------------------------------------------------------------- //
+
+    #region Mappers
+
     private DailyForecastMean MapToDomainModelDailyForecastMean(
         OpenMeteoDailyMeanResponseDto openMeteoResponseDto, Location location)
     {
@@ -85,4 +94,32 @@ public class OpenMeteoForecastProvider : IForecastProvider
 
         return dailyForecastResult;
     }
+
+
+    private WeeklyForecastMean MapToDomainModelWeeklyForecastMean(
+        OpenMeteoWeeklyMeanResponseDto openMeteoResponseDto, Location location)
+    {
+        var count = openMeteoResponseDto.Daily.Temperature2mMean.Count;
+        var daily = new DailyForecastMean[count];
+
+        for (int i = 0; i < count; i++)
+        {
+            var dateTranslate = DateOnly.Parse(
+                openMeteoResponseDto.Daily.Time[i],
+                CultureInfo.InvariantCulture);
+
+
+            daily[i] = new DailyForecastMean
+            (
+                dateTranslate,
+                location.LocationId,
+                _weatherCodeTranslator.Translate(openMeteoResponseDto.Daily.WeatherCode[i]),
+                openMeteoResponseDto.Daily.Temperature2mMean[i]
+            );
+        }
+
+        return new WeeklyForecastMean(daily);
+    }
+
+    #endregion
 }

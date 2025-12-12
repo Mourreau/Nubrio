@@ -1,9 +1,9 @@
 using FluentResults;
+using Nubrio.Application.Common.Errors;
 using Nubrio.Application.DTOs.CurrentForecast;
 using Nubrio.Application.DTOs.DailyForecast;
 using Nubrio.Application.DTOs.WeeklyForecast;
 using Nubrio.Application.Interfaces;
-using Nubrio.Application.Validators.Errors;
 using Nubrio.Domain.Models;
 using Nubrio.Domain.Models.Weekly;
 
@@ -83,36 +83,35 @@ public class WeatherForecastService : IWeatherForecastService
         return Result.Ok(result);
     }
 
-    public async Task<Result<DailyForecastDto>> GetDailyForecastByDateAsync(string city, DateOnly date,
+    public async Task<Result<DailyForecastMeanDto>> GetDailyForecastByDateAsync(string city, DateOnly date,
         CancellationToken cancellationToken)
     {
         // 0. Проверка входных данных
         if (string.IsNullOrWhiteSpace(city))
             return Result.Fail(new Error("City cannot be null or whitespace")
-                .WithMetadata("Code", ForecastServiceErrorCodes.EmptyCity)
+                .WithMetadata("ServiceCode", AppErrorCode.EmptyCity)
             );
 
         // 0.5. Проверка на язык
         var language = _languageResolver.Resolve(city);
+        
+        var forecastDateOffset = DateOnly
+            .FromDateTime(_clock.UtcNow.UtcDateTime)
+            .AddMonths(3);
+
+        if (date > forecastDateOffset)
+        {
+            return Result.Fail(new Error($"Date must not be later than {forecastDateOffset}")
+                .WithMetadata("ServiceCode", AppErrorCode.DateOutOfRange)
+            );
+        }
 
         // 1. Геокодинг
         var geocodingResult = await _geocodingProvider.ResolveAsync(city, language, cancellationToken);
 
         if (geocodingResult.IsFailed)
-        {
-            // TODO: Реализовать обработку ошибки когда геокодинг не нашел город.
-
-            // var firstError = geocodingResult.Errors[0];
-            // var code = firstError.Metadata?["ServiceCode"] as string;
-            //
-            // if (code == ForecastServiceErrorCodes.GeocodingNotFound)
-            // {
-            //     return Result.Fail(new Error(firstError.Message)
-            //         .WithMetadata("Code", Fore));
-            // }
-
-            return Result.Fail(geocodingResult.Errors); // Все остальные ошибки отдаем как internal
-        }
+            return Result.Fail(geocodingResult.Errors); 
+        
 
         // 2. Погода по дате
         var providerResult = await _forecastProvider.GetDailyForecastMeanAsync(
@@ -130,19 +129,20 @@ public class WeatherForecastService : IWeatherForecastService
         var localFetched = TimeZoneInfo.ConvertTime(
             _clock.UtcNow, timeZoneResolveResult.Value);
 
-        var result = new DailyForecastDto
+        var result = new DailyForecastMeanDto
         {
             City = geocodingResult.Value.Name,
-            Dates = [date],
-            Conditions = [_conditionStringMapper.From(providerResult.Value.Condition)],
+            Date = date,
+            Condition = _conditionStringMapper.From(providerResult.Value.Condition),
             FetchedAt = localFetched,
-            TemperaturesMean = [providerResult.Value.TemperatureMean]
+            TemperatureMean = providerResult.Value.TemperatureMean
         };
 
         return Result.Ok(result);
     }
+    
 
-    public async Task<Result<WeeklyForecastDto>> GetForecastByWeekAsync(string city,
+    public async Task<Result<WeeklyForecastMeanDto>> GetWeeklyForecastAsync(string city,
         CancellationToken cancellationToken)
     {
         // 1. Геокодинг
@@ -163,7 +163,7 @@ public class WeatherForecastService : IWeatherForecastService
         var localFetched = TimeZoneInfo.ConvertTime(
             _clock.UtcNow, timeZoneResolveResult.Value);
 
-        var result = new WeeklyForecastDto
+        var result = new WeeklyForecastMeanDto
         {
             City = geocodingResult.Value.Name,
             Days = GetDays(providerResult.Value),
@@ -196,7 +196,7 @@ public class WeatherForecastService : IWeatherForecastService
         // 0. Проверка входных данных
         if (string.IsNullOrWhiteSpace(city))
             return Result.Fail(new Error("City cannot be null or whitespace")
-                .WithMetadata("Code", ForecastServiceErrorCodes.EmptyCity)
+                .WithMetadata(ProviderErrorMetadataKeys.ServiceCode, AppErrorCode.EmptyCity)
             );
 
         // 0.5. Проверка на язык
