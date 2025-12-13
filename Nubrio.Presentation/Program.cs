@@ -1,4 +1,5 @@
 using System.Reflection;
+using Microsoft.Extensions.Caching.Memory;
 using Nubrio.Application.Interfaces;
 using Nubrio.Application.Services;
 using Nubrio.Infrastructure.Options;
@@ -30,9 +31,13 @@ builder.Services.AddSwaggerGen(setupAction =>
 builder.Services
     .Configure<ProviderOptions>(
         builder.Configuration.GetSection("WeatherProviders"));
+builder.Services.Configure<WeatherCacheOptions>(builder.Configuration.GetSection("WeatherCache"));
 
+builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IClock, Clock>();
 builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
+builder.Services.AddScoped<IWeatherForecastCache, MemoryWeatherForecastCache>();
+
 builder.Services.AddSingleton<IConditionStringMapper, OpenMeteoConditionStringMapper>();
 builder.Services.AddSingleton<ITimeZoneResolver, TimeZoneResolver>();
 
@@ -75,3 +80,5 @@ app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }

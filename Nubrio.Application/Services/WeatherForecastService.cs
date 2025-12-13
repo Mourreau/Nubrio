@@ -94,7 +94,7 @@ public class WeatherForecastService : IWeatherForecastService
 
         // 0.5. Проверка на язык
         var language = _languageResolver.Resolve(city);
-        
+
         var forecastDateOffset = DateOnly
             .FromDateTime(_clock.UtcNow.UtcDateTime)
             .AddMonths(3);
@@ -110,8 +110,8 @@ public class WeatherForecastService : IWeatherForecastService
         var geocodingResult = await _geocodingProvider.ResolveAsync(city, language, cancellationToken);
 
         if (geocodingResult.IsFailed)
-            return Result.Fail(geocodingResult.Errors); 
-        
+            return Result.Fail(geocodingResult.Errors);
+
 
         // 2. Погода по дате
         var providerResult = await _forecastProvider.GetDailyForecastMeanAsync(
@@ -127,7 +127,7 @@ public class WeatherForecastService : IWeatherForecastService
             return Result.Fail(timeZoneResolveResult.Errors);
 
         var localFetched = TimeZoneInfo.ConvertTime(
-            _clock.UtcNow, timeZoneResolveResult.Value);
+            providerResult.Value.FetchedAtUtc, timeZoneResolveResult.Value);
 
         var result = new DailyForecastMeanDto
         {
@@ -140,7 +140,7 @@ public class WeatherForecastService : IWeatherForecastService
 
         return Result.Ok(result);
     }
-    
+
 
     public async Task<Result<WeeklyForecastMeanDto>> GetWeeklyForecastAsync(string city,
         CancellationToken cancellationToken)
@@ -161,7 +161,7 @@ public class WeatherForecastService : IWeatherForecastService
             return Result.Fail(timeZoneResolveResult.Errors);
 
         var localFetched = TimeZoneInfo.ConvertTime(
-            _clock.UtcNow, timeZoneResolveResult.Value);
+            providerResult.Value.FetchedAtUtc, timeZoneResolveResult.Value);
 
         var result = new WeeklyForecastMeanDto
         {
@@ -179,12 +179,12 @@ public class WeatherForecastService : IWeatherForecastService
 
         foreach (var day in weeklyForecast.DailyForecasts)
         {
-            days.Add(new DaysDto
-            {
-                Condition = _conditionStringMapper.From(day.Condition),
-                Date = day.Date,
-                TemperatureMean = day.TemperatureMean
-            });
+            days.Add(
+                new DaysDto(
+                    Condition: _conditionStringMapper.From(day.Condition),
+                    Date: day.Date,
+                    TemperatureMean: day.TemperatureMean
+                ));
         }
 
         return days;

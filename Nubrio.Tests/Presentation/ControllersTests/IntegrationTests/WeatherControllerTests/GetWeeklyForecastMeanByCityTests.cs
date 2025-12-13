@@ -55,9 +55,9 @@ public class GetWeeklyForecastMeanByCityTests : IClassFixture<WeatherApiFactory>
         {
             City = checkCity,
             Days = new List<DaysDto>{new DaysDto(
-                condition: "condition",
-                date: new DateOnly(2025, 11, 11),
-                temperatureMean: 11)},
+                Condition: "condition",
+                Date: new DateOnly(2025, 11, 11),
+                TemperatureMean: 11)},
             FetchedAt = new DateTime(2000,
                 1,
                 1)

@@ -1,0 +1,31 @@
+using Nubrio.Domain.Models.Daily;
+using Nubrio.Domain.Models.Weekly;
+
+namespace Nubrio.Application.Interfaces;
+
+public interface IWeatherForecastCache
+{
+    Task<DailyForecastMean?> GetDailyAsync(
+        string provider,
+        string externalLocationId,
+        DateOnly date);
+
+    Task SetDailyAsync(
+        DailyForecastMean forecast,
+        string provider,
+        string externalLocationId,
+        DateOnly date);
+
+
+    Task<WeeklyForecastMean?> GetWeeklyAsync(
+        string provider,
+        string externalLocationId,
+        DateOnly weekStartDate);
+
+
+    Task SetWeeklyAsync(
+        WeeklyForecastMean forecast,
+        string provider,
+        string externalLocationId,
+        DateOnly weekStartDate);
+}

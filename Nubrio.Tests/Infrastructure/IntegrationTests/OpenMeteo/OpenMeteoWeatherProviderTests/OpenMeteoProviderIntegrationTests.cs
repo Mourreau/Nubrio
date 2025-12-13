@@ -9,8 +9,6 @@ using Nubrio.Infrastructure.Clients.ForecastClient;
 using Nubrio.Infrastructure.Options;
 using Nubrio.Infrastructure.Providers.OpenMeteo.Extensions;
 using Nubrio.Infrastructure.Providers.OpenMeteo.WmoCodes;
-using Nubrio.Infrastructure.Providers.ProviderBase;
-using Nubrio.Infrastructure.Providers.ProviderBase.ErrorsCodes;
 using Nubrio.Infrastructure.Services;
 using Nubrio.Tests.Infrastructure.IntegrationTests.Clients;
 
@@ -23,23 +21,34 @@ public class OpenMeteoProviderIntegrationTests
     
 
     private static ServiceProvider BuildProvider(HttpMessageHandler handler, string forecastBaseUri,
-        string? geocodingBaseUri, int timeoutSeconds = 5)
+        string? geocodingBaseUri, int timeoutSeconds = 5, int ttl = 5)
     {
         var cfg = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["WeatherProviders:OpenMeteo:ForecastBaseUrl"] = forecastBaseUri,
                 ["WeatherProviders:OpenMeteo:GeocodingBaseUrl"] = geocodingBaseUri,
-                ["WeatherProviders:OpenMeteo:TimeoutSeconds"] = timeoutSeconds.ToString()
+                ["WeatherProviders:OpenMeteo:TimeoutSeconds"] = timeoutSeconds.ToString(),
+                ["WeatherCache:TtlMinutes"] =  ttl.ToString()
             })
             .Build();
 
         var services = new ServiceCollection();
+        
+        
 
         // Зависимости домена/мапперы, как в Program.cs
+        services.AddSingleton<IConfiguration>(cfg);
+        services.AddOptions<WeatherCacheOptions>()
+            .Bind(cfg.GetSection("WeatherCache"));
+        
+        
         services.AddSingleton<IConditionStringMapper, OpenMeteoConditionStringMapper>();
         services.AddSingleton<ITimeZoneResolver, TimeZoneResolver>();
         services.AddSingleton<IWeatherCodeTranslator, OpenMeteoWeatherCodeTranslator>();
+        services.AddScoped<IClock, Clock>();
+        services.AddScoped<IWeatherForecastCache, MemoryWeatherForecastCache>();
+        services.AddMemoryCache();
 
         // Провайдер + клиент
         services.AddOpenMeteo(cfg);

@@ -1,11 +1,13 @@
 using System.Net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Nubrio.Application.Interfaces;
 using Nubrio.Infrastructure.Clients.ForecastClient;
 using Nubrio.Infrastructure.Clients.GeocodingClient;
 using Nubrio.Infrastructure.Options;
+using Nubrio.Infrastructure.Providers.CacheProvider;
 using Nubrio.Infrastructure.Providers.OpenMeteo.OpenMeteoForecast;
 using Nubrio.Infrastructure.Providers.OpenMeteo.OpenMeteoGeocoding;
 using Polly;
@@ -78,7 +80,21 @@ public static class ServiceCollectionExtensions
                 ConfigureResilience(conf, openMeteoOptions.TimeoutSeconds));
 
         services.AddScoped<IGeocodingProvider, OpenMeteoGeocodingProvider>();
-        services.AddScoped<IForecastProvider, OpenMeteoForecastProvider>();
+
+        services.AddScoped<OpenMeteoForecastProvider>();
+
+        services.AddScoped<IForecastProvider>(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<ProviderOptions>>().Value;
+            var providerKey = options.OpenMeteo.Name;
+
+            var openMeteoForecast = sp.GetRequiredService<OpenMeteoForecastProvider>();
+            var cache = sp.GetRequiredService<IWeatherForecastCache>();
+            var logger = sp.GetRequiredService<ILogger<CachedForecastProvider>>();
+            var clock = sp.GetRequiredService<IClock>();
+
+            return new CachedForecastProvider(cache, openMeteoForecast, providerKey, logger, clock);
+        });
 
         return services;
     }

@@ -13,7 +13,7 @@ namespace Nubrio.Infrastructure.Providers.ProviderBase;
 internal abstract class ExternalApiClientBase<TErrorCodes>
     where TErrorCodes : ProviderErrorCodes
 {
-    private ProviderInfo Info { get; }
+    protected ProviderInfo Info { get; }
     protected TErrorCodes ErrorCodes { get; }
     protected HttpClient HttpClient { get; }
 
