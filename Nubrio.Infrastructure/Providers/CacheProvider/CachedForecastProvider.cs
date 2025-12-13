@@ -35,10 +35,9 @@ public class CachedForecastProvider : IForecastProvider
         DateOnly date,
         CancellationToken cancellationToken)
     {
-        var normalizedCity = NormalizeCityName(location.Name);
 
-        var cachedForecast = await _cache.GetDailyAsync(
-            _providerKey, normalizedCity, date);
+        var externalLocationId = location.ExternalLocationId.Value;
+        var cachedForecast = await _cache.GetDailyAsync(_providerKey, externalLocationId, date);
 
         if (cachedForecast is not null)
             return Result.Ok(cachedForecast);
@@ -60,7 +59,7 @@ public class CachedForecastProvider : IForecastProvider
             "External forecast provider call has ended. Provider - {Provider}, City - {City}, Date - {Date}, Time elapsed - {Time}",
             _providerKey, location.Name, date, stopwatch.Elapsed);
 
-        await _cache.SetDailyAsync(forecast, _providerKey, normalizedCity, date);
+        await _cache.SetDailyAsync(forecast, _providerKey, externalLocationId, date);
 
         return Result.Ok(forecast);
     }
@@ -68,10 +67,10 @@ public class CachedForecastProvider : IForecastProvider
     public async Task<Result<WeeklyForecastMean>> GetWeeklyForecastMeanAsync(Location location,
         CancellationToken cancellationToken)
     {
-        var normalizedCity = NormalizeCityName(location.Name);
+        var externalLocationId = location.ExternalLocationId.Value;
         var weekStartDate = DateOnly.FromDateTime(_clock.UtcNow.DateTime);
 
-        var cachedForecast = await _cache.GetWeeklyAsync(_providerKey, normalizedCity, weekStartDate);
+        var cachedForecast = await _cache.GetWeeklyAsync(_providerKey, externalLocationId, weekStartDate);
 
         if (cachedForecast is not null)
             return Result.Ok(cachedForecast);
@@ -93,16 +92,12 @@ public class CachedForecastProvider : IForecastProvider
             "External forecast provider call has ended. Provider - {Provider}, City - {City}, Date - {Date}, Time elapsed - {Time}",
             _providerKey, location.Name, weekStartDate, stopwatch.Elapsed);
 
-        await _cache.SetWeeklyAsync(forecast, _providerKey, normalizedCity, weekStartDate);
+        await _cache.SetWeeklyAsync(forecast, _providerKey, externalLocationId, weekStartDate);
 
         return Result.Ok(forecast);
     }
 
     public Task<Result<CurrentForecast>> GetCurrentForecastAsync(Location location, CancellationToken cancellationToken)
         => _forecastProvider.GetCurrentForecastAsync(location, cancellationToken);
-
-    private static string NormalizeCityName(string cityName)
-    {
-        return cityName.Trim().ToLowerInvariant().Replace(" ", "-");
-    }
+    
 }

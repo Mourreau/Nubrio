@@ -7,25 +7,25 @@ public interface IWeatherForecastCache
 {
     Task<DailyForecastMean?> GetDailyAsync(
         string provider,
-        string cityNormalized,
+        string externalLocationId,
         DateOnly date);
 
     Task SetDailyAsync(
         DailyForecastMean forecast,
         string provider,
-        string cityNormalized,
+        string externalLocationId,
         DateOnly date);
 
 
     Task<WeeklyForecastMean?> GetWeeklyAsync(
         string provider,
-        string cityNormalized,
+        string externalLocationId,
         DateOnly weekStartDate);
 
 
     Task SetWeeklyAsync(
         WeeklyForecastMean forecast,
         string provider,
-        string cityNormalized,
+        string externalLocationId,
         DateOnly weekStartDate);
 }

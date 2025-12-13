@@ -7,7 +7,7 @@ public class Location
         string name, 
         Coordinates coordinates, 
         string timeZoneIana, 
-        ExternalLocationId? externalLocationId = null)
+        ExternalLocationId externalLocationId)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -31,7 +31,7 @@ public class Location
         ExternalLocationId = externalLocationId;
     }
     public Guid LocationId { get; }
-    public ExternalLocationId? ExternalLocationId { get; }
+    public ExternalLocationId ExternalLocationId { get; }
     public string Name { get; }
     public Coordinates Coordinates { get; } 
     public string TimeZoneIana { get; }
