@@ -20,7 +20,6 @@ public class GetDailyForecastByDateAsyncTests
     private readonly Mock<IForecastProvider> _weatherProviderMock;
     private readonly Mock<IGeocodingProvider> _geocodingServiceMock;
     private readonly Mock<IClock> _clockMock;
-    private readonly Mock<IConditionStringMapper> _conditionStringMapperMock;
     private readonly Mock<ITimeZoneResolver> _timeZoneResolverMock;
     private readonly Mock<ILanguageResolver> _languageResolverMock;
 
@@ -30,7 +29,6 @@ public class GetDailyForecastByDateAsyncTests
         _weatherProviderMock = new Mock<IForecastProvider>();
         _geocodingServiceMock = new Mock<IGeocodingProvider>();
         _clockMock = new Mock<IClock>();
-        _conditionStringMapperMock = new Mock<IConditionStringMapper>();
         _timeZoneResolverMock = new Mock<ITimeZoneResolver>();
         _languageResolverMock = new Mock<ILanguageResolver>();
 
@@ -39,7 +37,6 @@ public class GetDailyForecastByDateAsyncTests
             _weatherProviderMock.Object,
             _geocodingServiceMock.Object,
             _clockMock.Object,
-            _conditionStringMapperMock.Object,
             _timeZoneResolverMock.Object,
             _languageResolverMock.Object
         );
@@ -71,7 +68,7 @@ public class GetDailyForecastByDateAsyncTests
         var dailyForecast = new DailyForecastMean
         (
             dateOnly,
-            geocodingData.LocationId,
+            geocodingData.Id,
             enumCondition,
             temperature,
             fixedNowUtc
@@ -93,12 +90,7 @@ public class GetDailyForecastByDateAsyncTests
 
         // Ожидаемые локальные времена
         var expectedFetchedLocal = TimeZoneInfo.ConvertTime(fixedNowUtc, tz);
-
-        // 4. Перевод в DTO - настройка ConditionStringMapper
-        _conditionStringMapperMock.Setup(mapper =>
-                mapper.From(enumCondition))
-            .Returns(conditionNormalized);
-
+        
 
         // Act
         var result = await _weatherForecastService.GetDailyForecastByDateAsync(city, dateOnly, CancellationToken.None);
@@ -107,7 +99,7 @@ public class GetDailyForecastByDateAsyncTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         dto.City.Should().Be(city);
-        dto.Condition.Should().Be(conditionNormalized);
+        dto.Condition.Should().Be(enumCondition);
         dto.TemperatureMean.Should().Be(temperature);
 
         dto.Date.Should().Be(dateOnly);
@@ -118,10 +110,9 @@ public class GetDailyForecastByDateAsyncTests
             x => x.GetDailyForecastMeanAsync(geocodingData, dateOnly, It.IsAny<CancellationToken>()),
             Times.Once);
         _timeZoneResolverMock.Verify(x => x.GetTimeZoneInfoById(timeZoneIana), Times.Once);
-        _conditionStringMapperMock.Verify(x => x.From(enumCondition), Times.Once);
         _languageResolverMock.Verify(x => x.Resolve(city), Times.Once);
 
-        _testOutputHelper.WriteLine($"condition: {result.Value.Condition[0]}");
+        _testOutputHelper.WriteLine($"condition: {result.Value.Condition.ToString()}");
         _testOutputHelper.WriteLine($"city: {result.Value.City}");
         _testOutputHelper.WriteLine($"temperature: {result.Value.TemperatureMean}");
         _testOutputHelper.WriteLine($"fetch time: {result.Value.FetchedAt}");
@@ -215,7 +206,6 @@ public class GetDailyForecastByDateAsyncTests
             .Which.Message.Should().Be("OpenMeteo error");
 
         _timeZoneResolverMock.Verify(x => x.GetTimeZoneInfoById(timeZoneIana), Times.Never);
-        _conditionStringMapperMock.Verify(x => x.From(enumCondition), Times.Never);
         _clockMock.Verify(x => x.UtcNow, Times.Once);
     }
 
@@ -239,7 +229,7 @@ public class GetDailyForecastByDateAsyncTests
         var dailyForecast = new DailyForecastMean
         (
             dateOnly,
-            geocodingData.LocationId,
+            geocodingData.Id,
             enumCondition,
             temperature,
             fixedNowUtc
@@ -265,7 +255,6 @@ public class GetDailyForecastByDateAsyncTests
 
         _timeZoneResolverMock.Verify(x => x.GetTimeZoneInfoById(It.IsAny<string>()), Times.Once);
         _clockMock.Verify(x => x.UtcNow, Times.Once);
-        _conditionStringMapperMock.Verify(x => x.From(It.IsAny<WeatherConditions>()), Times.Never);
     }
 
 
@@ -274,7 +263,7 @@ public class GetDailyForecastByDateAsyncTests
     private Location GetValidGeocodingData(string city, string timeZoneIana)
     {
         var geocodingData = new Location
-            (Guid.NewGuid(), city, new Coordinates(50, 100), timeZoneIana);
+            (Guid.NewGuid(), city, new Coordinates(50, 100), timeZoneIana, new ExternalLocationId("test-provider", "00001"));
 
 
         _languageResolverMock.Setup(l => l.Resolve(city)).Returns("en");

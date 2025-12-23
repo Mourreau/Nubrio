@@ -1,15 +1,19 @@
+using System.Configuration;
 using System.Net;
 using System.Text;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Nubrio.Application.Common;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Models;
 using Nubrio.Infrastructure.Clients.ForecastClient;
 using Nubrio.Infrastructure.Options;
+using Nubrio.Infrastructure.Persistence;
 using Nubrio.Infrastructure.Providers.OpenMeteo.Extensions;
 using Nubrio.Infrastructure.Providers.OpenMeteo.WmoCodes;
 using Nubrio.Infrastructure.Services;
+using Nubrio.Presentation.Common;
 using Nubrio.Tests.Infrastructure.IntegrationTests.Clients;
 
 namespace Nubrio.Tests.Infrastructure.IntegrationTests.OpenMeteo.OpenMeteoWeatherProviderTests;
@@ -29,7 +33,8 @@ public class OpenMeteoProviderIntegrationTests
                 ["WeatherProviders:OpenMeteo:ForecastBaseUrl"] = forecastBaseUri,
                 ["WeatherProviders:OpenMeteo:GeocodingBaseUrl"] = geocodingBaseUri,
                 ["WeatherProviders:OpenMeteo:TimeoutSeconds"] = timeoutSeconds.ToString(),
-                ["WeatherCache:TtlMinutes"] =  ttl.ToString()
+                ["WeatherCache:TtlMinutes"] =  ttl.ToString(),
+                ["ConnectionStrings:NubrioDb"] = "Host=localhost;Port=5432;Database=nubrio;Username=nubrio_user;Password=secret"
             })
             .Build();
 
@@ -49,6 +54,9 @@ public class OpenMeteoProviderIntegrationTests
         services.AddScoped<IClock, Clock>();
         services.AddScoped<IWeatherForecastCache, MemoryWeatherForecastCache>();
         services.AddMemoryCache();
+        services.AddPersistence(cfg);
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICacheHitAccessor, HttpContextCacheHitAccessor>();
 
         // Провайдер + клиент
         services.AddOpenMeteo(cfg);
@@ -67,9 +75,13 @@ public class OpenMeteoProviderIntegrationTests
         var handler = new StubHttpMessageHandler((_, __) => Json200(validJson));
         var sp = BuildProvider(handler, ForecastBaseUrl, GeocodeBaseUrl);
         var provider = sp.GetRequiredService<IForecastProvider>();
+        
+        string providerName = "test-provider";
+        string externalId = "00001";
 
         var location = new Location(
-            Guid.NewGuid(), "Moscow", new Coordinates(55.75, 37.62), "Europe/Moscow");
+            Guid.NewGuid(), "Moscow", new Coordinates(55.75, 37.62), "Europe/Moscow",
+            new ExternalLocationId(providerName, externalId));
         var date = DateOnly.Parse("2025-10-20", System.Globalization.CultureInfo.InvariantCulture);
 
         // Act
@@ -84,6 +96,10 @@ public class OpenMeteoProviderIntegrationTests
     public async Task GetDailyForecastMean_WhenServer500_Then200_RetriesAndSucceeds(string validJson)
     {
         // Arrange 
+        string providerName = "test-provider";
+        string externalId = "00001";
+        
+        
         var handler = new StubHttpMessageHandler((_, call) =>
             call < 3
                 ? new HttpResponseMessage(HttpStatusCode.InternalServerError)
@@ -93,7 +109,8 @@ public class OpenMeteoProviderIntegrationTests
         var provider = sp.GetRequiredService<IForecastProvider>();
 
         var location = new Location(
-            Guid.NewGuid(), "Moscow", new Coordinates(55.75, 37.62), "Europe/Moscow");
+            Guid.NewGuid(), "Moscow", new Coordinates(55.75, 37.62), "Europe/Moscow",
+            new ExternalLocationId(providerName, externalId));
         var date = DateOnly.Parse("2025-10-20", System.Globalization.CultureInfo.InvariantCulture);
 
         // Act
@@ -109,6 +126,10 @@ public class OpenMeteoProviderIntegrationTests
     public async Task GetDailyForecastMean_WhenUnitsMismatch_ReturnsFailWithUnitsCode(string validJson)
     {
         // Arrange 
+        string providerName = "test-provider";
+        string externalId = "00001";
+        
+        
         var badJson = validJson.Replace("\"°C\"", "\"°F\"");
 
         var handler = new StubHttpMessageHandler((_, __) => Json200(badJson));
@@ -116,7 +137,8 @@ public class OpenMeteoProviderIntegrationTests
         var provider = sp.GetRequiredService<IForecastProvider>();
 
         var location = new Location(
-            Guid.NewGuid(), "Moscow", new Coordinates(55.75, 37.62), "Europe/Moscow");
+            Guid.NewGuid(), "Moscow", new Coordinates(55.75, 37.62), "Europe/Moscow", 
+            new ExternalLocationId(providerName, externalId));
         var date = DateOnly.Parse("2025-10-20", System.Globalization.CultureInfo.InvariantCulture);
 
         // Act
