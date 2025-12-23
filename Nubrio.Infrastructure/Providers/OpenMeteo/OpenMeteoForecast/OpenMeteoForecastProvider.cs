@@ -48,12 +48,7 @@ public class OpenMeteoForecastProvider : IForecastProvider
 
         return Result.Ok(result);
     }
-
-    public async Task<Result<CurrentForecast>> GetCurrentForecastAsync(Location location,
-        CancellationToken cancellationToken)
-    {
-        return Result.Fail($"{nameof(GetCurrentForecastAsync)} is not implemented");
-    }
+    
 
     public async Task<Result<WeeklyForecastMean>> GetWeeklyForecastMeanAsync(Location location,
         CancellationToken cancellationToken)

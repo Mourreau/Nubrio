@@ -30,55 +30,7 @@ public class WeatherForecastService : IWeatherForecastService
         _timeZoneResolver = timeZoneResolver;
         _languageResolver = languageResolver;
     }
-
-    public async Task<Result<CurrentForecastDto>> GetCurrentForecastAsync(string city,
-        CancellationToken cancellationToken)
-    {
-        // 0. Проверка входных данных
-        if (string.IsNullOrWhiteSpace(city))
-            return Result.Fail("City cannot be null or whitespace");
-
-        // 0.5. Проверка на язык
-        var language = _languageResolver.Resolve(city);
-
-        // 1. Геокодинг
-        var geocodingResult = await _geocodingProvider.ResolveAsync(city, language, cancellationToken);
-
-        if (geocodingResult.IsFailed)
-            return Result.Fail(geocodingResult.Errors);
-
-        // 2. Текущая погода
-        var providerResult = await _forecastProvider.GetCurrentForecastAsync(geocodingResult.Value, cancellationToken);
-
-        if (providerResult.IsFailed)
-            return Result.Fail(providerResult.Errors);
-
-        // 3. Получение локального часового пояса
-        var timeZoneResolveResult = _timeZoneResolver.GetTimeZoneInfoById(geocodingResult.Value.TimeZoneIana);
-
-        if (timeZoneResolveResult.IsFailed)
-            return Result.Fail(timeZoneResolveResult.Errors);
-
-
-        var localDateObserved = TimeZoneInfo.ConvertTime(
-            providerResult.Value.ObservedAt, timeZoneResolveResult.Value);
-
-        var localFetched = TimeZoneInfo.ConvertTime(
-            _clock.UtcNow, timeZoneResolveResult.Value);
-
-        // 4. Перевод в DTO
-        var result = new CurrentForecastDto
-        {
-            City = geocodingResult.Value.Name,
-            Date = localDateObserved,
-            Condition = providerResult.Value.Condition,
-            Temperature = providerResult.Value.Temperature,
-            FetchedAt = localFetched
-        };
-
-
-        return Result.Ok(result);
-    }
+    
 
     public async Task<Result<DailyForecastMeanDto>> GetDailyForecastByDateAsync(string city, DateOnly date,
         CancellationToken cancellationToken)

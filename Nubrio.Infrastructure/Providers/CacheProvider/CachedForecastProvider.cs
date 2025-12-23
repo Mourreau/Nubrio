@@ -111,7 +111,5 @@ public class CachedForecastProvider : IForecastProvider
 
         return Result.Ok(forecast);
     }
-
-    public Task<Result<CurrentForecast>> GetCurrentForecastAsync(Location location, CancellationToken cancellationToken)
-        => _forecastProvider.GetCurrentForecastAsync(location, cancellationToken);
+    
 }

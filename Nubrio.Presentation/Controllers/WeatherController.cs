@@ -20,22 +20,7 @@ public class WeatherController : ControllerBase
         _weatherForecastService = weatherForecastService;
         _forecastMapper = forecastMapper;
     }
-
-    [HttpGet("current")]
-    public async Task<ActionResult<CurrentWeatherResponseDto>> GetCurrentForecastByCity(
-        [FromRoute] string city,
-        CancellationToken cancellationToken)
-    {
-        var currentForecast = await _weatherForecastService.GetCurrentForecastAsync(city, cancellationToken);
-
-        if (currentForecast.IsFailed)
-            return BadRequest(currentForecast.Errors);
-
-
-        return Ok(_forecastMapper.ToCurrentResponseDto(currentForecast.Value));
-    }
-
-
+    
     /// <summary>
     /// Получает среднесуточный прогноз погоды для указанного города и даты.
     /// </summary>

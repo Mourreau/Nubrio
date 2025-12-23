@@ -9,8 +9,6 @@ public interface IForecastProvider
 {
     Task<Result<DailyForecastMean>> GetDailyForecastMeanAsync(Location location, DateOnly date,
         CancellationToken cancellationToken);
-
-    Task<Result<CurrentForecast>> GetCurrentForecastAsync(Location location, CancellationToken cancellationToken);
-
+    
     Task<Result<WeeklyForecastMean>> GetWeeklyForecastMeanAsync(Location location, CancellationToken cancellationToken);
 }
