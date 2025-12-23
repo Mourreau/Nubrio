@@ -1,4 +1,4 @@
-namespace Nubrio.Presentation.DTOs.Response;
+namespace Nubrio.Presentation.DTOs.Forecast.Response;
 
 public record CurrentWeatherResponseDto(
     string City,
@@ -8,4 +8,3 @@ public record CurrentWeatherResponseDto(
     string Source,
     DateTimeOffset FetchedAt,
     string IconUrl = "Icon has not found");
-

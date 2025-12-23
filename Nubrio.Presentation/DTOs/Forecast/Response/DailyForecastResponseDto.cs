@@ -1,4 +1,4 @@
-namespace Nubrio.Presentation.DTOs.Response;
+namespace Nubrio.Presentation.DTOs.Forecast.Response;
 
 public record DailyForecastResponseDto
 {

@@ -1,4 +1,4 @@
-namespace Nubrio.Presentation.DTOs.Response.WeeklyResponse;
+namespace Nubrio.Presentation.DTOs.Forecast.Response.WeeklyResponse;
 
 public record WeeklyForecastResponseDto
 {
@@ -15,6 +15,5 @@ public record WeeklyForecastDayResponseDto
     public required DateOnly Date { get; init; }
     public required string Condition { get; init; }
     public required double TemperatureC { get; init; }
-    public required string IconUrl { get; init; } = "Icon is not found";
+    public required string IconUrl { get; init; }
 }
-// TODO: Убрать значения по умолчанию у IconUrl и Source
