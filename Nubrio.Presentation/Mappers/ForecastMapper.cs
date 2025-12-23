@@ -1,54 +1,66 @@
+using System.ComponentModel.DataAnnotations;
 using Nubrio.Application.DTOs.CurrentForecast;
 using Nubrio.Application.DTOs.DailyForecast;
 using Nubrio.Application.DTOs.WeeklyForecast;
-using Nubrio.Presentation.DTOs.Response;
-using Nubrio.Presentation.DTOs.Response.WeeklyResponse;
+using Nubrio.Application.Interfaces;
+using Nubrio.Presentation.DTOs.Forecast.Response;
+using Nubrio.Presentation.DTOs.Forecast.Response.WeeklyResponse;
+using Nubrio.Presentation.Interfaces;
 
 namespace Nubrio.Presentation.Mappers;
 
-public static class ForecastMapper
+public class ForecastMapper : IForecastMapper
 {
-    public static CurrentWeatherResponseDto ToCurrentResponseDto(CurrentForecastDto currentForecast)
+    private readonly IConditionStringMapper _conditionStringMapper;
+    private readonly IConditionIconUrlResolver _iconUrlResolver;
+
+    public ForecastMapper(IConditionStringMapper conditionStringMapper, IConditionIconUrlResolver iconUrlResolver)
+    {
+        _conditionStringMapper = conditionStringMapper;
+        _iconUrlResolver = iconUrlResolver;
+    }
+
+    public CurrentWeatherResponseDto ToCurrentResponseDto(CurrentForecastDto currentForecast)
     {
         return new CurrentWeatherResponseDto
         (
             currentForecast.City,
             DateOnly.FromDateTime(currentForecast.Date.DateTime),
-            currentForecast.Condition,
+            _conditionStringMapper.From(currentForecast.Condition),
             currentForecast.Temperature,
             "OpenMeteo",
             currentForecast.FetchedAt
         );
     }
 
-    public static DailyForecastResponseDto ToDailyResponse(DailyForecastMeanDto forecastMeanDto)
+    public DailyForecastResponseDto ToDailyResponse(DailyForecastMeanDto forecastMeanDto)
     {
         return new DailyForecastResponseDto
         {
             City = forecastMeanDto.City,
-            Condition = forecastMeanDto.Condition,
+            Condition =  _conditionStringMapper.From(forecastMeanDto.Condition),
             Date = forecastMeanDto.Date,
             TemperatureC = forecastMeanDto.TemperatureMean,
             FetchedAt = forecastMeanDto.FetchedAt,
-            IconUrl = "Blank-Text", // TODO: Добавить иконки
+            IconUrl = _iconUrlResolver.Resolve(forecastMeanDto.Condition), 
             Source = "Open-Meteo", // TODO: Информацию о провайдере контроллер должен получать извне
         };
     }
 
 
-    public static WeeklyForecastResponseDto ToWeeklyResponse(WeeklyForecastMeanDto forecastMeanDto)
+    public WeeklyForecastResponseDto ToWeeklyResponse(WeeklyForecastMeanDto forecastMeanDto)
     {
         return new WeeklyForecastResponseDto
         {
             City = forecastMeanDto.City,
-            Days = ForecastMapper.ToDailyResponse(forecastMeanDto),
+            Days = ToDailyResponse(forecastMeanDto),
             Source = "Open-Meteo",
             FetchedAt = forecastMeanDto.FetchedAt
         };
     }
 
 
-    private static IReadOnlyList<WeeklyForecastDayResponseDto> ToDailyResponse(WeeklyForecastMeanDto forecastMeanDto)
+    private IReadOnlyList<WeeklyForecastDayResponseDto> ToDailyResponse(WeeklyForecastMeanDto forecastMeanDto)
     {
         var days = new List<WeeklyForecastDayResponseDto>();
 
@@ -57,9 +69,9 @@ public static class ForecastMapper
             days.Add(new WeeklyForecastDayResponseDto
             {
                 Date = day.Date,
-                Condition = day.Condition,
+                Condition =  _conditionStringMapper.From(day.Condition),
                 TemperatureC = day.TemperatureMean,
-                IconUrl = "Not found" // TODO: Добавить иконки
+                IconUrl = _iconUrlResolver.Resolve(day.Condition)
             });
         }
 
