@@ -96,7 +96,7 @@ public class OpenMeteoForecastProvider : IForecastProvider
         var dailyForecastResult = new DailyForecastMean
         (
             dateTranslate,
-            location.LocationId,
+            location.Id,
             _weatherCodeTranslator.Translate(openMeteoResponseDto.Daily.WeatherCode[index]),
             openMeteoResponseDto.Daily.Temperature2mMean[index],
             fetchedAtUtc
@@ -125,7 +125,7 @@ public class OpenMeteoForecastProvider : IForecastProvider
             daily[i] = new DailyForecastMean
             (
                 dateTranslate,
-                location.LocationId,
+                location.Id,
                 _weatherCodeTranslator.Translate(openMeteoResponseDto.Daily.WeatherCode[i]),
                 openMeteoResponseDto.Daily.Temperature2mMean[i],
                 fetchedAtUtc

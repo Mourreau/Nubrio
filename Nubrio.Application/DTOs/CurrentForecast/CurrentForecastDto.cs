@@ -1,4 +1,6 @@
 
+using Nubrio.Domain.Enums;
+
 namespace Nubrio.Application.DTOs.CurrentForecast;
 
 public record CurrentForecastDto
@@ -7,7 +9,7 @@ public record CurrentForecastDto
     
     public required DateTimeOffset Date { get; init; }
     
-    public required string Condition { get; init; }
+    public required WeatherConditions Condition { get; init; }
     
     public required double Temperature { get; init; }
     

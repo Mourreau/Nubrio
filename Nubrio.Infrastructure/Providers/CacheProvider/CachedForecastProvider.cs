@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using FluentResults;
 using Microsoft.Extensions.Logging;
+using Nubrio.Application.Common;
 using Nubrio.Application.Interfaces;
 using Nubrio.Domain.Models;
 using Nubrio.Domain.Models.Daily;
@@ -14,19 +15,22 @@ public class CachedForecastProvider : IForecastProvider
     private readonly string _providerKey;
     private readonly IForecastProvider _forecastProvider;
     private readonly IClock _clock;
+    private readonly ICacheHitAccessor _accessor;
     private readonly ILogger<CachedForecastProvider> _logger;
 
     public CachedForecastProvider(IWeatherForecastCache cache,
         IForecastProvider forecastProvider,
         string providerKey,
         ILogger<CachedForecastProvider> logger,
-        IClock clock)
+        IClock clock,
+        ICacheHitAccessor accessor)
     {
         _cache = cache;
         _forecastProvider = forecastProvider;
         _providerKey = providerKey;
         _logger = logger;
         _clock = clock;
+        _accessor = accessor;
     }
 
 
@@ -35,14 +39,19 @@ public class CachedForecastProvider : IForecastProvider
         DateOnly date,
         CancellationToken cancellationToken)
     {
-
         var externalLocationId = location.ExternalLocationId.Value;
         var cachedForecast = await _cache.GetDailyAsync(_providerKey, externalLocationId, date);
 
         if (cachedForecast is not null)
+        {
+            _accessor.SetCacheHit(true);
             return Result.Ok(cachedForecast);
+        }
 
         var stopwatch = Stopwatch.StartNew();
+
+        _accessor.SetCacheHit(false);
+
         _logger.LogInformation(
             "Cache miss. External forecast provider has been called. Provider - {Provider}, City - {City}, Date - {Date}",
             _providerKey, location.Name, date);
@@ -73,9 +82,15 @@ public class CachedForecastProvider : IForecastProvider
         var cachedForecast = await _cache.GetWeeklyAsync(_providerKey, externalLocationId, weekStartDate);
 
         if (cachedForecast is not null)
+        {
+            _accessor.SetCacheHit(true);
             return Result.Ok(cachedForecast);
+        }
 
         var stopwatch = Stopwatch.StartNew();
+        
+        _accessor.SetCacheHit(false);
+        
         _logger.LogInformation(
             "Cache miss. External forecast provider has been called. Provider - {Provider}, City - {City}, Date - {Date}",
             _providerKey, location.Name, weekStartDate);
@@ -99,5 +114,4 @@ public class CachedForecastProvider : IForecastProvider
 
     public Task<Result<CurrentForecast>> GetCurrentForecastAsync(Location location, CancellationToken cancellationToken)
         => _forecastProvider.GetCurrentForecastAsync(location, cancellationToken);
-    
 }

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Nubrio.Application.Common;
 using Nubrio.Application.Interfaces;
 using Nubrio.Infrastructure.Clients.ForecastClient;
 using Nubrio.Infrastructure.Clients.GeocodingClient;
@@ -92,8 +93,8 @@ public static class ServiceCollectionExtensions
             var cache = sp.GetRequiredService<IWeatherForecastCache>();
             var logger = sp.GetRequiredService<ILogger<CachedForecastProvider>>();
             var clock = sp.GetRequiredService<IClock>();
-
-            return new CachedForecastProvider(cache, openMeteoForecast, providerKey, logger, clock);
+            var accessor = sp.GetRequiredService<ICacheHitAccessor>();
+            return new CachedForecastProvider(cache, openMeteoForecast, providerKey, logger, clock, accessor);
         });
 
         return services;

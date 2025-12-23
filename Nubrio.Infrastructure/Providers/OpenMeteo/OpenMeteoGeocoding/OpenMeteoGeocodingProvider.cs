@@ -47,10 +47,9 @@ internal sealed class OpenMeteoGeocodingProvider : IGeocodingProvider
             new Coordinates(resultDto.Latitude, resultDto.Longitude),
             resultDto.Timezone,
             new ExternalLocationId(
-                ExternalProviders.OpenMeteo,
-                resultDto.Id
+                ExternalProviders.OpenMeteo, // TODO: Реализовать получение имени провайдера через ProviderInfo
+                resultDto.Id.ToString()
             ));
-
 
         return Result.Ok(location);
     }
