@@ -52,7 +52,8 @@ internal sealed class OpenMeteoGeocodingClient : ExternalApiClientBase<Geocoding
         return Result.Ok(dto);
     }
 
-    private static ProviderInfo CreateProviderInfo(IOptions<ProviderOptions> options)
+    private static ProviderInfo
+        CreateProviderInfo(IOptions<ProviderOptions> options) //TODO: Убрать зависимость клиента от IOptions<T>
     {
         var cfg = options.Value.OpenMeteo;
 

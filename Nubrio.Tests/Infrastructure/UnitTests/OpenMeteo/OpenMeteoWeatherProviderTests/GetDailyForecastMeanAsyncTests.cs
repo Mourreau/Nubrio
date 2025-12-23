@@ -230,11 +230,15 @@ public class GetDailyForecastMeanAsyncTests
 
     private static Location MakeLocation(Guid id)
     {
+        string providerName = "test-provider";
+        string externalId = "00001";
+        
         return new Location(
             id,
             "Moscow",
             new Coordinates(50, 100),
-            "Europe/Moscow");
+            "Europe/Moscow",
+            new  ExternalLocationId(providerName, externalId));
     }
 
     private static OpenMeteoDailyMeanResponseDto MakeClientResponseDto(

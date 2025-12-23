@@ -5,8 +5,10 @@ using Moq;
 using Nubrio.Application.Common.Errors;
 using Nubrio.Application.DTOs.DailyForecast;
 using Nubrio.Application.Interfaces;
+using Nubrio.Domain.Enums;
 using Nubrio.Presentation.Controllers;
-using Nubrio.Presentation.DTOs.Response;
+using Nubrio.Presentation.DTOs.Forecast.Response;
+using Nubrio.Presentation.Mappers;
 
 namespace Nubrio.Tests.Presentation.ControllersTests.UnitTests.WeatherControllerTests;
 
@@ -15,28 +17,31 @@ public class GetDailyForecastByCityTests
     private readonly Mock<IWeatherForecastService> _weatherForecastServiceMock;
     private readonly WeatherController _controller;
     private readonly Mock<IClock> _clockMock;
+    private readonly Mock<IForecastMapper> _forecastMapperMock;
 
     public GetDailyForecastByCityTests()
     {
         _weatherForecastServiceMock = new Mock<IWeatherForecastService>();
         _clockMock = new Mock<IClock>();
+        _forecastMapperMock = new Mock<IForecastMapper>();
 
         _clockMock.Setup(x => x.UtcNow)
             .Returns(new DateTimeOffset(2025, 11, 20, 0, 0, 0, TimeSpan.Zero));
 
-        _controller = new WeatherController(_weatherForecastServiceMock.Object, _clockMock.Object);
+        _controller = new WeatherController(_weatherForecastServiceMock.Object, _forecastMapperMock.Object);
     }
 
 
     [Theory]
-    [InlineData("Moscow", "2025-02-11", "heavy rain", 17)]
-    [InlineData("Minsk", "2025-09-08", "sunny", -9.4)]
-    [InlineData("Yekaterinburg", "2025-06-01", "clear", 1.7)]
+    [InlineData("Moscow", "2025-02-11", 17)]
+    [InlineData("Minsk", "2025-09-08", -9.4)]
+    [InlineData("Yekaterinburg", "2025-06-01", 1.7)]
     public async Task GetDailyForecastByCity_WhenServiceReturnsSuccess_ShouldReturnOkWithMappedResponse(
-        string city, string date, string condition, double tempMean)
+        string city, string date, double tempMean)
     {
         // Arrange
         var dateOnly = DateOnly.Parse(date);
+        var condition = WeatherConditions.Clear;
 
         var serviceDto = GetWeatherForecastServiceDto(city, dateOnly, condition, tempMean);
 
@@ -58,7 +63,7 @@ public class GetDailyForecastByCityTests
 
         response.City.Should().Be(city);
         response.Date.Should().Be(dateOnly);
-        response.Condition.Should().Be(condition);
+        response.Condition.Should().Be(condition.ToString());
         response.TemperatureC.Should().Be(tempMean);
         response.FetchedAt.Should().Be(serviceDto.FetchedAt);
         response.Source.Should().Be("Open-Meteo");
@@ -185,7 +190,7 @@ public class GetDailyForecastByCityTests
 
     #region Helpers
 
-    private DailyForecastMeanDto GetWeatherForecastServiceDto(string city, DateOnly dateOnly, string condition,
+    private DailyForecastMeanDto GetWeatherForecastServiceDto(string city, DateOnly dateOnly, WeatherConditions condition,
         double tempMean)
     {
         return new DailyForecastMeanDto

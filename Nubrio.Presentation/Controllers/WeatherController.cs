@@ -1,8 +1,8 @@
 using FluentResults;
 using Microsoft.AspNetCore.Mvc;
 using Nubrio.Application.Interfaces;
-using Nubrio.Presentation.DTOs.Response;
-using Nubrio.Presentation.DTOs.Response.WeeklyResponse;
+using Nubrio.Presentation.DTOs.Forecast.Response;
+using Nubrio.Presentation.DTOs.Forecast.Response.WeeklyResponse;
 using Nubrio.Presentation.Mappers;
 
 namespace Nubrio.Presentation.Controllers;
@@ -12,13 +12,13 @@ namespace Nubrio.Presentation.Controllers;
 public class WeatherController : ControllerBase
 {
     private readonly IWeatherForecastService _weatherForecastService;
-    private readonly IClock _clock;
+    private readonly IForecastMapper _forecastMapper;
 
 
-    public WeatherController(IWeatherForecastService weatherForecastService, IClock clock)
+    public WeatherController(IWeatherForecastService weatherForecastService, IForecastMapper forecastMapper)
     {
         _weatherForecastService = weatherForecastService;
-        _clock = clock;
+        _forecastMapper = forecastMapper;
     }
 
     [HttpGet("current")]
@@ -32,7 +32,7 @@ public class WeatherController : ControllerBase
             return BadRequest(currentForecast.Errors);
 
 
-        return Ok(ForecastMapper.ToCurrentResponseDto(currentForecast.Value));
+        return Ok(_forecastMapper.ToCurrentResponseDto(currentForecast.Value));
     }
 
 
@@ -78,13 +78,13 @@ public class WeatherController : ControllerBase
     {
         var result =
             await _weatherForecastService.GetDailyForecastByDateAsync(city, date, cancellationToken);
-
+        
         if (result.IsFailed)
-            return FromResult(Result.Fail(result.Errors));
+            return this.FromResult(Result.Fail(result.Errors));
 
         var forecastDto = result.Value;
 
-        return Ok(ForecastMapper.ToDailyResponse(forecastDto));
+        return Ok(_forecastMapper.ToDailyResponse(forecastDto));
     }
 
 
@@ -132,14 +132,13 @@ public class WeatherController : ControllerBase
             await _weatherForecastService.GetWeeklyForecastAsync(city, cancellationToken);
 
         if (result.IsFailed)
-            return FromResult(Result.Fail(result.Errors));
+            return this.FromResult(Result.Fail(result.Errors));
 
         var forecastDto = result.Value;
 
-        return Ok(ForecastMapper.ToWeeklyResponse(forecastDto));
+        return Ok(_forecastMapper.ToWeeklyResponse(forecastDto));
     }
 
 
-    private static ActionResult FromResult(Result result)
-        => new ObjectResult(result);
+
 }

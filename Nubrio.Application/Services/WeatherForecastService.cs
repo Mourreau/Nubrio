@@ -14,7 +14,6 @@ public class WeatherForecastService : IWeatherForecastService
     private readonly IForecastProvider _forecastProvider;
     private readonly IGeocodingProvider _geocodingProvider;
     private readonly IClock _clock;
-    private readonly IConditionStringMapper _conditionStringMapper;
     private readonly ITimeZoneResolver _timeZoneResolver;
     private readonly ILanguageResolver _languageResolver;
 
@@ -22,14 +21,12 @@ public class WeatherForecastService : IWeatherForecastService
         IForecastProvider forecastProvider,
         IGeocodingProvider geocodingProvider,
         IClock clock,
-        IConditionStringMapper conditionStringMapper,
         ITimeZoneResolver timeZoneResolver,
         ILanguageResolver languageResolver)
     {
         _forecastProvider = forecastProvider;
         _geocodingProvider = geocodingProvider;
         _clock = clock;
-        _conditionStringMapper = conditionStringMapper;
         _timeZoneResolver = timeZoneResolver;
         _languageResolver = languageResolver;
     }
@@ -74,7 +71,7 @@ public class WeatherForecastService : IWeatherForecastService
         {
             City = geocodingResult.Value.Name,
             Date = localDateObserved,
-            Condition = _conditionStringMapper.From(providerResult.Value.Condition),
+            Condition = providerResult.Value.Condition,
             Temperature = providerResult.Value.Temperature,
             FetchedAt = localFetched
         };
@@ -133,7 +130,7 @@ public class WeatherForecastService : IWeatherForecastService
         {
             City = geocodingResult.Value.Name,
             Date = date,
-            Condition = _conditionStringMapper.From(providerResult.Value.Condition),
+            Condition = providerResult.Value.Condition,
             FetchedAt = localFetched,
             TemperatureMean = providerResult.Value.TemperatureMean
         };
@@ -181,7 +178,7 @@ public class WeatherForecastService : IWeatherForecastService
         {
             days.Add(
                 new DaysDto(
-                    Condition: _conditionStringMapper.From(day.Condition),
+                    Condition: day.Condition,
                     Date: day.Date,
                     TemperatureMean: day.TemperatureMean
                 ));

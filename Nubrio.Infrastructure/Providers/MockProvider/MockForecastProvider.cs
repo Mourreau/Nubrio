@@ -61,7 +61,7 @@ public class MockForecastProvider : IForecastProvider
                 var result = new CurrentForecast
                 (
                     offsetFromString.Value,
-                    location.LocationId,
+                    location.Id,
                     responseDto.Current.Temperature2m,
                     _weatherCodeTranslator.Translate(responseDto.Current.WeatherCode)
                 );

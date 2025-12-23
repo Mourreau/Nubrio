@@ -1,12 +1,16 @@
 namespace Nubrio.Domain.Models;
 
-public class Location
+public sealed class Location
 {
+    private Location()
+    {
+    }
+
     public Location(
-        Guid locationId,
-        string name, 
-        Coordinates coordinates, 
-        string timeZoneIana, 
+        Guid id,
+        string name,
+        Coordinates coordinates,
+        string timeZoneIana,
         ExternalLocationId externalLocationId)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -21,18 +25,22 @@ public class Location
                 nameof(timeZoneIana), $"'{nameof(timeZoneIana)}' cannot be null or whitespace.");
         }
         
-        LocationId = locationId;
-        Name = name;
         Coordinates = coordinates ??
-                          throw new ArgumentNullException(
-                              nameof(coordinates), $"'{nameof(coordinates)}' cannot be null or whitespace.");
-        TimeZoneIana = timeZoneIana;
+                      throw new ArgumentNullException(
+                          nameof(coordinates), $"'{nameof(coordinates)}' cannot be null or whitespace.");
 
-        ExternalLocationId = externalLocationId;
+        ExternalLocationId = externalLocationId ??
+                             throw new ArgumentNullException(
+                                 nameof(externalLocationId), $"'{nameof(externalLocationId)}' cannot be null or whitespace.");
+        
+        Id = id;
+        Name = name;
+        TimeZoneIana = timeZoneIana;
     }
-    public Guid LocationId { get; }
-    public ExternalLocationId ExternalLocationId { get; }
-    public string Name { get; }
-    public Coordinates Coordinates { get; } 
-    public string TimeZoneIana { get; }
+
+    public Guid Id { get; private set; }
+    public ExternalLocationId ExternalLocationId { get; private set; }
+    public string Name { get; private set; }
+    public Coordinates Coordinates { get; private set; }
+    public string TimeZoneIana { get; private set; }
 }

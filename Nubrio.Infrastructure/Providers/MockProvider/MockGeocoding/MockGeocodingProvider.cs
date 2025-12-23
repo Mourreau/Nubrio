@@ -20,7 +20,7 @@ public class MockGeocodingProvider : IGeocodingProvider
             "Asia/Yekaterinburg",
             new ExternalLocationId(
                 "MockGeocodingProvider",
-                002002));
+                "002002"));
         
         return Task.FromResult(Result.Ok(location));
     }

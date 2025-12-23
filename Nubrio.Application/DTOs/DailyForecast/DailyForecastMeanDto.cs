@@ -1,3 +1,5 @@
+using Nubrio.Domain.Enums;
+
 namespace Nubrio.Application.DTOs.DailyForecast;
 
 public record DailyForecastMeanDto
@@ -6,7 +8,7 @@ public record DailyForecastMeanDto
     
     public required DateOnly Date { get; init; }
     
-    public required string Condition { get; init; }
+    public required WeatherConditions Condition { get; init; }
     
     public required double TemperatureMean { get; init; }
     

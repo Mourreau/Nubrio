@@ -5,7 +5,8 @@ using FluentResults;
 using Microsoft.Extensions.DependencyInjection;
 using Nubrio.Application.Common.Errors;
 using Nubrio.Application.DTOs.DailyForecast;
-using Nubrio.Presentation.DTOs.Response;
+using Nubrio.Domain.Enums;
+using Nubrio.Presentation.DTOs.Forecast.Response;
 
 namespace Nubrio.Tests.Presentation.ControllersTests.IntegrationTests.WeatherControllerTests;
 
@@ -34,7 +35,7 @@ public class GetDailyForecastMeanByCityTests : IClassFixture<WeatherApiFactory>
         var resultDto = new DailyForecastMeanDto
         {
             City = checkCity,
-            Condition = "condition",
+            Condition = WeatherConditions.Clear,
             Date = new DateOnly(2025, 11, 11),
             TemperatureMean = 11,
             FetchedAt = new DateTime(2000, 1, 1)

@@ -11,10 +11,13 @@ public class LocationTests
         string name = "city";
         Coordinates coord = new Coordinates(50, 60);
         string tz = "Asia/Yekaterinburg";
-        
-        Location result =  new Location(id, name, coord, tz);
-        
-        Assert.Equal(result.LocationId, id);
+
+        string providerName = "test-provider";
+        string externalId = "00001";
+
+        Location result = new Location(id, name, coord, tz, new ExternalLocationId(providerName, externalId));
+
+        Assert.Equal(result.Id, id);
         Assert.Equal(result.Name, name);
         Assert.Equal(result.Coordinates, coord);
         Assert.Equal(result.TimeZoneIana, tz);
@@ -28,13 +31,18 @@ public class LocationTests
         string spaceName = "";
         Coordinates coord = new Coordinates(50, 60);
         string tz = "Asia/Yekaterinburg";
-        
-        var ex = Assert.Throws<ArgumentNullException>(() => new Location(id, nullName, coord, tz));
-        
+
+        string providerName = "test-provider";
+        string externalId = "00001";
+
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            new Location(id, nullName, coord, tz,
+                new ExternalLocationId(providerName, externalId)));
+
         Assert.Equal("name", ex.ParamName);
         Assert.Contains("cannot be null", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
-    
+
     [Fact]
     public void CtorLocation_WithWhiteSpaceName_ShouldThrow()
     {
@@ -42,13 +50,17 @@ public class LocationTests
         string spaceName = "";
         Coordinates coord = new Coordinates(50, 60);
         string tz = "Asia/Yekaterinburg";
-        
-        var ex = Assert.Throws<ArgumentNullException>(() => new Location(id, spaceName, coord, tz));
-        
+
+        string providerName = "test-provider";
+        string externalId = "00001";
+
+        var ex = Assert.Throws<ArgumentNullException>(() => new Location(id, spaceName, coord, tz,
+            new ExternalLocationId(providerName, externalId)));
+
         Assert.Equal("name", ex.ParamName);
         Assert.Contains("or whitespace", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
-    
+
     [Fact]
     public void CtorLocation_WithNullTimeZone_ShouldThrow()
     {
@@ -56,13 +68,17 @@ public class LocationTests
         string name = "city";
         Coordinates coord = new Coordinates(50, 60);
         string nullTz = null;
-        
-        var ex = Assert.Throws<ArgumentNullException>(() => new Location(id, name, coord, nullTz));
-        
+
+        string providerName = "test-provider";
+        string externalId = "00001";
+
+        var ex = Assert.Throws<ArgumentNullException>(() => new Location(id, name, coord, nullTz,
+            new ExternalLocationId(providerName, externalId)));
+
         Assert.Equal("timeZoneIana", ex.ParamName);
         Assert.Contains("cannot be null", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
-    
+
     [Fact]
     public void CtorLocation_WithWhiteSpaceTimeZone_ShouldThrow()
     {
@@ -70,13 +86,20 @@ public class LocationTests
         string name = "city";
         Coordinates coord = new Coordinates(50, 60);
         string spaceTz = " ";
-        
-        var ex = Assert.Throws<ArgumentNullException>(() => new Location(id, name, coord, spaceTz));
-        
+
+
+        string providerName = "test-provider";
+        string externalId = "00001";
+
+
+        var ex = Assert.Throws<ArgumentNullException>(() => new Location(id, name, coord, spaceTz,
+            new ExternalLocationId(providerName, externalId)));
+
+
         Assert.Equal("timeZoneIana", ex.ParamName);
         Assert.Contains("or whitespace", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
-    
+
     [Fact]
     public void CtorLocation_WithNullCoordinates_ShouldThrow()
     {
@@ -84,9 +107,13 @@ public class LocationTests
         string name = "city";
         Coordinates nullCoord = null;
         string tz = "Asia/Yekaterinburg";
-        
-        var ex = Assert.Throws<ArgumentNullException>(() => new Location(id, name, nullCoord, tz));
-        
+
+        string providerName = "test-provider";
+        string externalId = "00001";
+
+        var ex = Assert.Throws<ArgumentNullException>(() => new Location(id, name, nullCoord, tz,
+            new ExternalLocationId(providerName, externalId)));
+
         Assert.Equal("coordinates", ex.ParamName);
         Assert.Contains("cannot be null", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
