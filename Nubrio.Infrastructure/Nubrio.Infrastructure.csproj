@@ -7,7 +7,30 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="EFCore.NamingConventions" Version="8.0.3" />
       <PackageReference Include="FluentResults" Version="4.0.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.22" />
+      <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
+      <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.9" />
+      <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.10.0" />
+      <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.9" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+      <PackageReference Include="System.Runtime.Caching" Version="8.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Nubrio.Application\Nubrio.Application.csproj" />
+      <ProjectReference Include="..\Nubrio.Domain\Nubrio.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="MockProvider\mock_weather_api_current_response.json" />
+      <None Remove="MockProvider\mock_weather_api_daily_response.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Providers\MockProvider\mock_weather_api_current_response.json" />
+      <EmbeddedResource Include="Providers\MockProvider\mock_weather_api_daily_response.json" />
     </ItemGroup>
 
 </Project>

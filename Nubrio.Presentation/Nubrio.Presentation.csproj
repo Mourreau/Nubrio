@@ -1,19 +1,33 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-    </PropertyGroup>
+
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn> <!-- чтобы не ругался на "нет XML-комментариев" -->
+      <UserSecretsId>14ad737c-8569-43a0-a5cb-aa582d676a56</UserSecretsId>
+  </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="FluentResults" Version="4.0.0" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.18"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.18" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.22">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Nubrio.Application\Nubrio.Application.csproj" />
+        <ProjectReference Include="..\Nubrio.Application\Nubrio.Application.csproj" />
+        <ProjectReference Include="..\Nubrio.Infrastructure\Nubrio.Infrastructure.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="DTOs\Forecast\" />
+      <Folder Include="wwwroot\icons\" />
     </ItemGroup>
 
 </Project>

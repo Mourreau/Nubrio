@@ -11,7 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Services\" />
+      <ProjectReference Include="..\Nubrio.Domain\Nubrio.Domain.csproj" />
     </ItemGroup>
 
 </Project>
