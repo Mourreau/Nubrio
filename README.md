@@ -99,7 +99,7 @@ PGADMIN_DEFAULT_PASSWORD=<PASSWORD>
 
 1. Указать строку подключения:
 ```bash
-dotnet user-secrets set "ConnectionStrings:NubrioDb" "Host=localhost;Port=5432;Database=<DBNAME>;Username=<USERNAME>;Password=<PASSWORD>"
+dotnet user-secrets set "ConnectionStrings:NubrioDb" "Host=localhost;Port=5432;Database=<DBNAME>;Username=<USERNAME>;Password=<PASSWORD>" --project Nubrio.Presentation
 ```
 2.	Применить миграции:
 `dotnet ef database update`
