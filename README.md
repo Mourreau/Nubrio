@@ -67,9 +67,14 @@ REST API для получения прогноза погоды и статис
 1. Создать файл `.env` в корне проекта:
 
 ```env
+#PostgreSql
 POSTGRES_DB=<DBNAME>
 POSTGRES_USER=<USERNAME>
 POSTGRES_PASSWORD=<PASSWORD>
+
+#pgAdmin
+PGADMIN_DEFAULT_EMAIL=<EMAIL>
+PGADMIN_DEFAULT_PASSWORD=<PASSWORD>
 ```
 
 2.	Запустить контейнеры:
@@ -101,6 +106,11 @@ dotnet user-secrets set "ConnectionStrings:NubrioDb" "Host=localhost;Port=5432;D
 
 3.	Запустить API:
 `dotnet run --project Nubrio.Presentation`
+
+---
+
+## При первом запуске необходимо применить миграции
+`dotnet ef database update --project Nubrio.Infrastructure --startup-project Nubrio.Presentation`
 
 ---
 
